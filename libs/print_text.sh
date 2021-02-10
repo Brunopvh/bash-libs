@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-
+__version__='2021-02-09'
+lib_print_text='True'
 
 #=============================================================#
 # Cores.
@@ -87,50 +88,39 @@ print_line()
 	fi
 }
 
-_println()
-{
-	# Imprimir mensagens sem quebrar linhas.
-	echo -ne " + $@"
-}
-
-_print()
-{
-	echo -e " + $@"
-}
-
-_msg()
+msg()
 {
 	print_line
 	echo -e " $@"
 	print_line
 }
 
-_red()
+red()
 {
 	echo -e "${CRed} ! ${CReset}$@"
 }
 
-_green()
+green()
 {
 	echo -e "${CGreen} + ${CReset}$@"
 }
 
-_yellow()
+yellow()
 {
 	echo -e "${CYellow} + ${CReset}$@"
 }
 
-_blue()
+blue()
 {
 	echo -e "${CBlue} + ${CReset}$@"
 }
 
-_white()
+white()
 {
 	echo -e "${CWhite} + ${CReset}$@"
 }
 
-_sred()
+sred()
 {
 	echo -e "${CSRed}$@${CReset}"
 }
@@ -140,12 +130,15 @@ _sgreen()
 	echo -e "${CSGreen}$@${CReset}"
 }
 
-_syellow()
+syellow()
 {
 	echo -e "${CSYellow}$@${CReset}"
 }
 
-_sblue()
+sblue()
 {
 	echo -e "${CSBlue}$@${CReset}"
 }
+
+
+

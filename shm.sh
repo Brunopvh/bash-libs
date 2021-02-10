@@ -3,15 +3,15 @@
 # Este script instala módulos/libs para o bash, para facilitar a importação de 
 # códigos em bash. Semelhante ao pip do python.
 
-readonly __version__='2021-02-07'
+readonly __version__='2021-02-09'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
 #readonly temp_dir="$(mktemp --directory)-$__appname__"
 readonly temp_dir="/tmp/${USER}-${__appname__}"
-readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/storecli/archive/master.tar.gz'
+readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly FILE_LIBS_TAR="$temp_dir/libs.tar.gz"
-readonly DESTINATION_LIBS=~/.local/lib/bash_libs
+readonly PATH_BASH_LIBS=~/.local/lib/bash-libs
 readonly DIR_BIN=~/.local/bin
 
 COLUMNS=$(tput cols)
@@ -32,7 +32,7 @@ function _blue() { echo -e "${BLUE}$@${RESET}"; }
 }
 
 mkdir -p "$temp_dir"
-mkdir -p "$DESTINATION_LIBS"
+mkdir -p "$PATH_BASH_LIBS"
 mkdir -p "$DIR_BIN"
 
 function is_executable()
@@ -127,14 +127,14 @@ function __download__()
 		fi
 
 		_red "Falha no download"
-		sleep 0.1
+		sleep 2
 		local count="$(($count-1))"
 		if [[ $count > 0 ]]; then
 			_yellow "Tentando novamente. Restando [$count] tentativa(s) restante(s)."
 			continue
 		else
 			[[ -f "$path_file" ]] && __rmdir__ "$path_file"
-			_sred "$(print_line)"
+			_red "$(print_line)"
 			return 1
 			break
 		fi
@@ -151,7 +151,7 @@ function _install_modules()
 	print_line
 	echo -e "${GREEN}I${RESET}nstalando os seguintes pacotes:\n"
 	n=0
-	for PKG in "${PkgsList[@]}"; do
+	for PKG in "${@}"; do
 		[[ "$n" == 2 ]] && n=0 && echo
 		printf "%-20s" "$PKG "
 
@@ -165,23 +165,22 @@ function _install_modules()
 	echo -ne "Descompactando ... $FILE_LIBS_TAR "
 	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
 	echo 'OK'
-	cd $(ls -d storecli-*)
-	cd lib
+	cd $(ls -d bash-libs*)
+	cd libs
 	
-	for PKG in "${PkgsList[@]}"; do
-		case "$PKG" in
-			installer_utils) 
-					__copy__ installer_utils.sh "$DESTINATION_LIBS"/installer_utils.sh
+	while [[ $1 ]]; do
+		case "$1" in
+			print_text) 
+					__copy__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh
 					;;
-			conf-path) 
-					cd ../scripts
-					__copy__ conf-path.sh "$DESTINATION_LIBS"/conf-path.sh
+			config_path) 
+					__copy__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
 					;;
 			*) _red "pacote indisponivel ... $PKG";;
 		esac
+		shift
 	done
 	echo -e "Feito!"
-	_yellow "$(print_line '=')"
 }
 
 function _remove_modules()
@@ -191,8 +190,8 @@ function _remove_modules()
 
 # Lista de todos o módulos disponíveis para instalação.
 readonly OnlineModules=(
-	'installer_utils'
-	'conf-path'
+	'print_text'
+	'config_path'
 	)
 
 function list_online_modules()
@@ -204,6 +203,21 @@ function list_online_modules()
 		n="$(($n + 1))"
 	done
 	echo
+}
+
+_configure()
+{
+	[[ -f ~/.bashrc ]] && source ~/.bashrc
+	[[ -z $HOME ]] && HOME=~/
+
+	_install_modules config_path 
+	source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
+	backup
+	config_bashrc
+
+	touch ~/.shmrc
+	grep -q -m 1 'export PATH_BASH_LIBS=' ~/.shmrc && return 0
+	echo -e "export PATH_BASH_LIBS=$HOME/.local/lib/bash-libs" >> ~/.shmrc
 }
 
 # OptionList
@@ -250,8 +264,9 @@ function main()
 
 	while [[ $1 ]]; do
 		case "$1" in
-			--install) _install_modules;;
+			--install) _install_modules "${PkgsList[@]}";;
 			--remove) _remove_modules;;
+			--configure) _configure;;
 			--self-install) 
 					cp "$__script__" "$DIR_BIN"/shm
 					chmod +x "$DIR_BIN"/shm

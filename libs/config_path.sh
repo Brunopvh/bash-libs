@@ -3,7 +3,7 @@
 # Este script serve para inserir os diretórios que contém binário na
 # HOME('~/bin' e '~/.local/bin') na variável PATH do usuario atual.
 #
-__version__='2021-01-31'
+__version__='2021-02-09'
 #
 
 # NÃO pode ser root.
@@ -75,12 +75,5 @@ backup()
 	fi
 }
 
-main()
-{
-	backup
-	config_bashrc
-	config_zshrc
-}
 
-main
 
