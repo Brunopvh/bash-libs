@@ -197,7 +197,10 @@ readonly OnlineModules=(
 function self_update()
 {
 	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
-	__download__ "$url_shm_main" "$HOME"/.local/bin/shm
+	local temp_update="$(mktemp)-shm-update"
+	
+	__download__ "$url_shm_main" "$temp_update" || return 1
+	cp "$(mktemp)-shm-update" "$HOME"/.local/bin/shm
 	chmod +x "$HOME"/.local/bin/shm
 	shm --version
 }
