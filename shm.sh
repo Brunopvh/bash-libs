@@ -176,6 +176,7 @@ function _install_modules()
 			config_path) 
 					__copy__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
 					;;
+			os) __copy__ os.sh "$PATH_BASH_LIBS"/os.sh;;
 			*) _red "pacote indisponivel ... $PKG";;
 		esac
 		shift
@@ -192,6 +193,7 @@ function _remove_modules()
 readonly OnlineModules=(
 	'print_text'
 	'config_path'
+	'os'
 	)
 
 function self_update()
@@ -200,7 +202,7 @@ function self_update()
 	local temp_update="$(mktemp)-shm-update"
 	
 	__download__ "$url_shm_main" "$temp_update" || return 1
-	cp "$(mktemp)-shm-update" "$HOME"/.local/bin/shm
+	cp "$temp_update" "$HOME"/.local/bin/shm
 	chmod +x "$HOME"/.local/bin/shm
 	shm --version
 }
