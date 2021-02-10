@@ -7,8 +7,8 @@ readonly __version__='2021-02-09'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
-#readonly temp_dir="$(mktemp --directory)-$__appname__"
-readonly temp_dir="/tmp/${USER}-${__appname__}"
+readonly temp_dir="$(mktemp --directory)-$__appname__"
+#readonly temp_dir="/tmp/${USER}-${__appname__}"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly FILE_LIBS_TAR="$temp_dir/libs.tar.gz"
 readonly PATH_BASH_LIBS=~/.local/lib/bash-libs
@@ -296,3 +296,6 @@ function main()
 if [[ ! -z $1 ]]; then
 	main "$@"
 fi
+
+
+__rmdir__ "$temp_dir" 1> /dev/null
