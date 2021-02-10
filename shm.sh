@@ -194,6 +194,14 @@ readonly OnlineModules=(
 	'config_path'
 	)
 
+function self_update()
+{
+	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+	__download__ "$url_shm_main" "$HOME"/.local/bin/shm
+	chmod +x "$HOME"/.local/bin/shm
+	shm --version
+}
+
 function list_online_modules()
 {
 	n=0
@@ -271,6 +279,7 @@ function main()
 					cp "$__script__" "$DIR_BIN"/shm
 					chmod +x "$DIR_BIN"/shm
 				;;
+			--self-update) self_update;;
 			--list) list_online_modules;;
 			--version) echo -e "$__version__";;
 			*) ;;
