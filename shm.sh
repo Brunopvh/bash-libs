@@ -2,13 +2,21 @@
 #
 # Este script instala módulos/libs para o bash, para facilitar a importação de 
 # códigos em bash. Semelhante ao pip do python.
+#--------------------------------------------------#
+# URL
+#--------------------------------------------------#
+# 
+# sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/shm.sh)" 
+#
 
-readonly __version__='2021-02-09'
+readonly __version__='2021-02-11'
+readonly __author__='Bruno Chaves'
+readonly url_bash_libs='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
 readonly temp_dir="$(mktemp --directory)-$__appname__"
-#readonly temp_dir="/tmp/${USER}-${__appname__}"
+# readonly temp_dir="/tmp/${USER}-${__appname__}"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly FILE_LIBS_TAR="$temp_dir/libs.tar.gz"
 readonly PATH_BASH_LIBS=~/.local/lib/bash-libs
@@ -48,6 +56,16 @@ function print_line()
 		char="$1"
 	fi
 	printf "%-${COLUMNS}s" | tr ' ' "$char"
+}
+
+function show_logo()
+{
+	clear
+	print_line
+	echo -e "${GREEN}${__appname__[@]:0:1}${RESET}${__appname__[@]:1} V${__version__}"
+	echo -e "${GREEN}G${RESET}ithub $url_bash_libs"
+	echo -e "${GREEN}A${RESET}utor $__author__"
+	print_line
 }
 
 function __rmdir__()
@@ -295,6 +313,8 @@ function main()
 
 if [[ ! -z $1 ]]; then
 	main "$@"
+else
+	show_logo
 fi
 
 

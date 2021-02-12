@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__='2021-02-09'
+__version__='2021-02-11'
 # Requer a lib print_text
 
 [[ -f ~/.shmrc ]] && source ~/.shmrc
@@ -40,7 +40,7 @@ question()
 	fi
 }
 
-loop_pid()
+wait_pid()
 {
 	# Esta função serve para executar um loop enquanto um determinado processo
 	# do sistema está em execução, por exemplo um outro processo de instalação
@@ -67,24 +67,13 @@ loop_pid()
 	echo -e "Aguardando processo com pid [$Pid] ${CYellow}finalizado${CReset} [${Char}]"	
 }
 
-isroot()
-{
-	printf " + Autênticação necessária para ${CYellow}${USER}${CReset}: \n"
-	if [[ $(sudo id -u) == '0' ]]; then
-		return 0	
-	else
-		_red "(_isroot): falha na autênticação."
-		return 1
-	fi
-}
-
 is_admin(){
 	printf "Autênticação necessária para prosseguir "
 	if [[ $(sudo id -u) == 0 ]]; then
 		printf "OK\n"
 		return 0
 	else
-		printf "\033[0;31mFALHA\033[m\n"
+		sred "ERRO"
 		return 1
 	fi
 }
