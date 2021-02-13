@@ -53,6 +53,10 @@ function download()
 	# Baixa arquivos da internet.
 	# Requer um gerenciador de downloads wget, curl, aria2
 	# 
+	# https://curl.se/
+	# https://www.gnu.org/software/wget/
+	# https://aria2.github.io/manual/pt/html/README.html
+	# 
 	# $1 = URL
 	# $2 = Output File - (Opcional)
 	#
@@ -64,11 +68,6 @@ function download()
 
 	local url="$1"
 	local path_file="$2"
-	local count=3
-	local StatusOutput=0
-	
-	[[ ! -z $path_file ]] && blue "Salvando ... $path_file"
-	blue "Conectando ... $1"
 
 	if [[ -x $(command -v wget) ]]; then
 		Downloader='wget'
@@ -78,67 +77,40 @@ function download()
 		Downloader='curl'
 	else
 		red "(download): Instale curl|wget|aria2c para prosseguir."
+		sleep 0.1
 		return 1
 	fi
 
-	while true; do
-		if [[ ! -z $path_file ]]; then
-			case "$Downloader" in 
-				aria2c) 
-						aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" && break
-						;;
-				curl)
-					curl -C - -S -L -o "$path_file" "$url" && break
-						;;
-				wget)
-					wget -c "$url" -O "$path_file" && break
-						;;
-				*)
-					StatusOutput='1'
-					return 1
-					break
-					;;
-			esac
-		else
-			case "$Downloader" in 
-				aria2c) 
-						aria2c -c "$url" && break
-						;;
-				curl)
-						curl -C - -S -L -O "$url" && break
-						;;
-				wget)
-					wget -c "$url" && break
-						;;
-				*)
-					StatusOutput=1
-					return 1
-					break
-					;;
-			esac
-		fi
 
-		red "Falha no download"; sleep 0.25
-		local count="$(($count-1))"
-		if [[ $count > 0 ]]; then
-			yellow "Tentando novamente. Restando [$count] tentativa(s) restante(s)."
-			sleep 0.25
-			continue
-		else
-			[[ -f "$path_file" ]] && __rmdir__ "$path_file"
-			sred "$(print_line)"
-			StatusOutput=1
-			return 1
-			break
-		fi
-	done
-
-	if [[ "$StatusOutput" == '0' ]]; then
-		return 0
+	echo -e "Conectando $url"
+	if [[ ! -z $path_file ]]; then
+		case "$Downloader" in 
+			aria2c) 
+					aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 
+					;;
+			curl)
+				curl -C - -S -L -o "$path_file" "$url"
+					;;
+			wget)
+				wget -c "$url" -O "$path_file"
+					;;
+		esac
 	else
-		sred "$(print_line)"
-		return "$StatusOutput"
+		case "$Downloader" in 
+			aria2c) 
+					aria2c -c "$url"
+					;;
+			curl)
+					curl -C - -S -L -O "$url"
+					;;
+			wget)
+				wget -c "$url"
+					;;
+		esac
 	fi
+
+	[[ $? == 0 ]] && echo 'OK' && return 0
+	red '(__download__): ERRO'
 }
 
 

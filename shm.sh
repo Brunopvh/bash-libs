@@ -15,8 +15,8 @@ readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
 readonly temp_dir=$(mktemp --directory); mkdir -p "$temp_dir"
-# readonly temp_dir="/tmp/${USER}-${__appname__}"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
+readonly URL_MODULES_LIST='https://raw.github.com/Brunopvh/bash-libs/main/libs/modules.list'
 readonly FILE_LIBS_TAR="$temp_dir/bash-libs.tar.gz"
 readonly url_shell_pkg_manager='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 
@@ -31,6 +31,8 @@ else
 fi
 
 readonly FILE_CONFIG=~/.shmrc
+readonly MODULES_LIST="$DIR_CONFIG/modules.list"
+
 [[ -f ~/.bashrc ]] && source ~/.bashrc
 [[ -z $HOME ]] && HOME=~/
 [[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
@@ -144,9 +146,10 @@ function __rmdir__()
 	done
 }
 
-function __copy__()
+function __copy_mod__()
 {
-	echo -ne "Copiando ... $1 "
+	# Copia os módulos.
+	echo -ne "Instalando ... $2 "
 	if cp -R "$1" "$2"; then
 		echo 'OK'
 		return 0
@@ -158,66 +161,68 @@ function __copy__()
 
 function __download__()
 {
-	[[ -f "$2" ]] && {
-		echo -e "Arquivo encontrado ...$2"
-		return 0
-	}
+	# Baixa arquivos da internet.
+	# Requer um gerenciador de downloads wget, curl, aria2
+	# 
+	# https://curl.se/
+	# https://www.gnu.org/software/wget/
+	# https://aria2.github.io/manual/pt/html/README.html
+	# 
+	# $1 = URL
+	# $2 = Output File - (Opcional)
+	#
 
 	local url="$1"
 	local path_file="$2"
-	local count=3
-	
-	cd "$temp_dir"
-	[[ ! -z $path_file ]] && echo -e "Salvando ... $path_file"
-	echo -e "Conectando ... $1"
-	while true; do
-		if [[ ! -z $path_file ]]; then
-			
-			if is_executable wget; then
-				wget -c "$url" -O "$path_file" && break
-			elif is_executable curl; then
-				curl -C - -S -L -o "$path_file" "$url" && break
-			elif is_executable aria2c; then
-				aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" && break
-			else
-				return 1
-				break
-			fi
-		else
-			if is_executable aria2c; then
-				aria2c -c "$url" -d "$temp_dir" && break
-			elif is_executable curl; then
-				curl -C - -S -L -O "$url" && break
-			elif is_executable wget; then
-				wget -c "$url" && break
-			else
-				return 1
-				break
-			fi
-		fi
 
-		_red "Falha no download"
-		sleep 2
-		local count="$(($count-1))"
-		if [[ $count > 0 ]]; then
-			_yellow "Tentando novamente. Restando [$count] tentativa(s) restante(s)."
-			continue
-		else
-			[[ -f "$path_file" ]] && __rmdir__ "$path_file"
-			_red "$(print_line)"
-			return 1
-			break
-		fi
-	done
-	if [[ "$?" == '0' ]]; then
-		return 0
+	if [[ -x $(command -v wget) ]]; then
+		Downloader='wget'
+	elif [[ -x $(command -v aria2c) ]]; then
+		Downloader='aria2c'
+	elif [[ -x $(command -v curl) ]]; then
+		Downloader='curl'
 	else
-		_red "$(print_line)"
+		red "(download): Instale curl|wget|aria2c para prosseguir."
+		sleep 0.1
+		return 1
 	fi
+
+
+	echo -ne "Conectando aguarde ... "
+	if [[ ! -z $path_file ]]; then
+		case "$Downloader" in 
+			aria2c) 
+					aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 1> /dev/null
+					;;
+			curl)
+				curl -C - -S -L -s -o "$path_file" "$url"
+					;;
+			wget)
+				wget -q -c "$url" -O "$path_file"
+					;;
+		esac
+	else
+		case "$Downloader" in 
+			aria2c) 
+					aria2c -c "$url"
+					;;
+			curl)
+					curl -C - -S -L -O "$url"
+					;;
+			wget)
+				wget -c "$url"
+					;;
+		esac
+	fi
+
+	[[ $? == 0 ]] && echo 'OK' && return 0
+	_red '(__download__): ERRO'
 }
 
 function _install_modules()
 {
+	# $1 = modulo(s) a serem instalados.
+
 	print_line
 	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
 	n=0
@@ -227,37 +232,35 @@ function _install_modules()
 		n="$(($n + 1))"
 	done
 	echo
+
 	print_line
-	echo -ne 'Conectando aguarde ... '
-	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" 1> /dev/null 2>&1 || { echo 'ERRO'; return 1; }
-	echo 'OK'
+	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
+
 	cd "$temp_dir"
 	echo -ne "Descompactando ... $FILE_LIBS_TAR "
 	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
 	echo 'OK'
-	cd "$temp_dir"/bash-libs-main
-	cd libs || {
-		_red "ERRO"
-		return 1
-	}
+	cd "$temp_dir"/bash-libs-main || return 1
+	cd libs
 	
 	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
+
 	while [[ $1 ]]; do
 		case "$1" in
 			print_text) 
-					__copy__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh
+					__copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh
 					;;
 			config_path) 
-					__copy__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
+					__copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
 					;;
 			os) 
-				__copy__ os.sh "$PATH_BASH_LIBS"/os.sh
+				__copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh
 				;;
 			requests)
-				__copy__ requests.sh "$PATH_BASH_LIBS"/requests.sh
+				__copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh
 				;;
 			utils)
-				__copy__ utils.sh "$PATH_BASH_LIBS"/utils.sh
+				__copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh
 				;;
 			*) 
 				_red "pacote indisponivel ... $PKG"
@@ -280,8 +283,8 @@ function _remove_modules()
 		n="$(($n + 1))"
 	done
 	echo
-	print_line
 
+	print_line
 	__rmdir__ "$@"
 	echo -e "Feito!"
 }
@@ -291,24 +294,42 @@ function self_update()
 {
 	# Baixar e instalar a ultima versão deste script disponível no github.
 	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
-	local temp_update="$(mktemp)-shm-update"
+	local temp_file_update=$(mktemp)
 	
-	__download__ "$url_shm_main" "$temp_update" || return 1
-	cp "$temp_update" "$DIR_BIN"/shm
+	__download__ "$url_shm_main" "$temp_file_update" || return 1
+	cp "$temp_file_update" "$DIR_BIN"/shm
 	chmod +x "$DIR_BIN"/shm
-	shm --version
+	
+	if [[ -x $(command -v shm) ]]; then
+		echo "Atualização instalada com sucesso."
+		return 0
+	else
+		_red "ERRO"
+		return 1
+	fi
 }
 
-function list_online_modules()
+function self_install()
+{
+	__copy_mod__ "$__script__" "$DIR_BIN"/shm || return 1
+	chmod +x "$DIR_BIN"/shm || return 1
+}
+
+function list_modules()
 {
 	# Listar os módulos disponíveis para instalação.
 	n=0
-	for P in "${OnlineModules[@]}"; do
+	for MOD in $(cat $MODULES_LIST); do
 		[[ "$n" == 2 ]] && n=0 && echo
-		printf "%-20s" "$P "
+		printf "%-20s" "$MOD "
 		n="$(($n + 1))"
 	done
 	echo
+}
+
+function update_modules_list()
+{
+	__download__ "$URL_MODULES_LIST" "$MODULES_LIST" || return 1	
 }
 
 _configure()
@@ -316,20 +337,22 @@ _configure()
 	# Configurações para primeira execução.
 
 	_install_modules config_path || return 1
-	[[ $(id -u) != 0 ]] && source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
+	update_modules_list || return 1
+	source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
 	backup
 	config_bashrc
 	config_zshrc
 
 	touch ~/.shmrc
 	sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
-	#grep -q -m 1 "export PATH_BASH_LIBS=" ~/.shmrc && return 0
+	# grep -q -m 1 "export PATH_BASH_LIBS=" ~/.shmrc && return 0
 	echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> $FILE_CONFIG
 }
 
 function argument_parse()
 {
 	[[ -z $1 ]] && return 1
+
 	local num=0
 	for OPT in "$@"; do
 		OptionList["$num"]="$OPT"
@@ -339,14 +362,14 @@ function argument_parse()
 	# Parse
 	num=0
 	num_pkg=0
-	# Percorrer todoa arguemtos.
+	# Percorrer todos arguemtos.
 	for OPT in "${OptionList[@]}"; do
 		if [[ "$OPT" == '--install' ]] || [[ "$OPT" == '-i' ]]; then
 			# Verificar quais argumentos vem depois da opção --install.
 			# o loop será quebrado quando encontrar outra opção ou seja -- ou -.
 			for pkg in "${OptionList[@]:$num}"; do
 				if [[ "$pkg" != '--install' ]] && [[ "$pkg" != '-i' ]]; then
-					# Verificar se o primeiro caracter e igual a -. Se for o loop deve ser
+					# Verificar se o primeiro caracter e igual a '-'. Se for o loop deve ser
 					# encerrado pois é uma opção e não um pacote.
 					echo -e "${pkg[@]:0:1}" | grep -q '-' && break
 			
@@ -371,12 +394,9 @@ function main()
 			-i|--install) _install_modules "${PkgsList[@]}";;
 			-r|--remove) _remove_modules;;
 			-c|--configure) _configure;;
-			--self-install) 
-					cp "$__script__" "$DIR_BIN"/shm
-					chmod +x "$DIR_BIN"/shm
-				;;
+			--self-install) self_install;; 
 			-u|--self-update) self_update;;
-			-l|--list) list_online_modules;;
+			-l|--list) list_modules;;
 			-h|--help) usage; return; break;;
 			-v|--version) echo -e "$__version__";;
 			*) ;;
@@ -389,7 +409,8 @@ if [[ ! -z $1 ]]; then
 	main "$@"
 else
 	show_logo
+	self_update # Auto instala esta script em ~/.local/bin/shm
+	_configure  # Executa configuração inicial. Ver o arquivo ~/.shmrc 
 fi
 
-CONFIRM='True'
-__rmdir__ "$temp_dir" 1> /dev/null
+rm -rf "$temp_dir" 1> /dev/null 2>&1
