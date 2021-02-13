@@ -9,39 +9,62 @@
 # sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/shm.sh)" 
 #
 
-readonly __version__='2021-02-11'
+readonly __version__='2021-02-13'
 readonly __author__='Bruno Chaves'
-readonly url_bash_libs='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
-readonly temp_dir="$(mktemp --directory)-$__appname__"
+readonly temp_dir=$(mktemp --directory); mkdir -p "$temp_dir"
 # readonly temp_dir="/tmp/${USER}-${__appname__}"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
-readonly FILE_LIBS_TAR="$temp_dir/libs.tar.gz"
-readonly PATH_BASH_LIBS=~/.local/lib/bash-libs
-readonly DIR_BIN=~/.local/bin
+readonly FILE_LIBS_TAR="$temp_dir/bash-libs.tar.gz"
+readonly url_shell_pkg_manager='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+
+if [[ $(id -u) == 0 ]]; then
+	readonly PATH_BASH_LIBS='/usr/local/lib/bash'
+	readonly DIR_BIN='/usr/local/bin'
+	readonly DIR_CONFIG="/etc/${__appname__}"
+else
+	readonly PATH_BASH_LIBS=~/.local/lib/bash
+	readonly DIR_BIN=~/.local/bin
+	readonly DIR_CONFIG=~/".config/${__appname__}"
+fi
+
+readonly FILE_CONFIG=~/.shmrc
+[[ -f ~/.bashrc ]] && source ~/.bashrc
+[[ -z $HOME ]] && HOME=~/
+[[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
+
+#==================================================================#
+# Lista de todos o módulos disponíveis para instalação.
+#==================================================================#
+readonly OnlineModules=(
+	'config_path'
+	'os'
+	'print_text'
+	'requests'
+	'utils'
+	)
+
+
+# Argumentos/Opções passados na linha de comando.
+OptionList=() 
+
+# Lista de pacotes a serem instalados.
+PkgsList=()
 
 COLUMNS=$(tput cols)
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-RESET='\033[m'
+RED='\e[0;31m'
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+BLUE='\e[0;34m'
+RESET='\e[m'
 
 function _red() { echo -e "${RED}$@${RESET}"; }
 function _green() { echo -e "${GREEN}$@${RESET}"; }
 function _yellow() { echo -e "${YELLOW}$@${RESET}"; }
 function _blue() { echo -e "${BLUE}$@${RESET}"; }
 
-[[ $(id -u) == 0 ]] && {
-	_red "Você não pode ser o 'root'. Saindo..."
-	exit 1 
-}
-
-mkdir -p "$temp_dir"
-mkdir -p "$PATH_BASH_LIBS"
-mkdir -p "$DIR_BIN"
 
 function is_executable()
 {
@@ -63,9 +86,26 @@ function show_logo()
 	clear
 	print_line
 	echo -e "${GREEN}${__appname__[@]:0:1}${RESET}${__appname__[@]:1} V${__version__}"
-	echo -e "${GREEN}G${RESET}ithub $url_bash_libs"
+	echo -e "${GREEN}G${RESET}ithub $url_shell_pkg_manager"
 	echo -e "${GREEN}A${RESET}utor $__author__"
 	print_line
+}
+
+function usage()
+{
+cat << EOF
+   Use:
+      -h|--help         Exibe ajuda.
+      -v|--version      Exibe versão.
+
+      -c|--configure    Configura este script e suas configurações no sistema.
+      -u|--self-update  Instala a ultima versão(online) deste script disponível no github.
+
+      --self-install         Instala este script(offline) no seu sistema.
+      -i|--install (módulo)  Instalar um ou mais módulo(s) no sistema.
+      -r|--remove (módulo)   Remove um ou mais módulos do seu sistema.
+
+EOF
 }
 
 function __rmdir__()
@@ -78,8 +118,19 @@ function __rmdir__()
 	#     __rmdir__ <arquivo>
 	# Se o arquivo/diretório não for removido por falta de privilegio 'root'
 	# o comando de remoção será com 'sudo'.
-	
 	[[ -z $1 ]] && return 1
+
+	local msg="Deseja ${RED}deletar${RESET} os seguintes arquivos/diretórios? : $@ \n${GREEN}s${RESET}/${RED}N${RESET}: "
+	if [[ "$CONFIRM" != 'True' ]]; then
+		echo -ne "$msg"
+		read -n 1 -t 20 yesno
+		printf "\n"
+		case "$yesno" in 
+			s|S|Y|y) ;;
+			*) return;;
+		esac
+	fi
+
 	while [[ $1 ]]; do		
 		cd $(dirname "$1")
 		if [[ -f "$1" ]] || [[ -d "$1" ]] || [[ -L "$1" ]]; then
@@ -167,12 +218,11 @@ function __download__()
 function _install_modules()
 {
 	print_line
-	echo -e "${GREEN}I${RESET}nstalando os seguintes pacotes:\n"
+	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
 	n=0
 	for PKG in "${@}"; do
 		[[ "$n" == 2 ]] && n=0 && echo
 		printf "%-20s" "$PKG "
-
 		n="$(($n + 1))"
 	done
 	echo
@@ -183,9 +233,13 @@ function _install_modules()
 	echo -ne "Descompactando ... $FILE_LIBS_TAR "
 	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
 	echo 'OK'
-	cd $(ls -d bash-libs*)
-	cd libs
+	cd "$temp_dir"/bash-libs-main
+	cd libs || {
+		_red "ERRO"
+		return 1
+	}
 	
+	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
 	while [[ $1 ]]; do
 		case "$1" in
 			print_text) 
@@ -194,8 +248,19 @@ function _install_modules()
 			config_path) 
 					__copy__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
 					;;
-			os) __copy__ os.sh "$PATH_BASH_LIBS"/os.sh;;
-			*) _red "pacote indisponivel ... $PKG";;
+			os) 
+				__copy__ os.sh "$PATH_BASH_LIBS"/os.sh
+				;;
+			requests)
+				__copy__ requests.sh "$PATH_BASH_LIBS"/requests.sh
+				;;
+			utils)
+				__copy__ utils.sh "$PATH_BASH_LIBS"/utils.sh
+				;;
+			*) 
+				_red "pacote indisponivel ... $PKG"
+				sleep 0.1
+				;;
 		esac
 		shift
 	done
@@ -204,29 +269,37 @@ function _install_modules()
 
 function _remove_modules()
 {
+	print_line
+	echo -e "${RED}R${RESET}emovendo os seguintes módulos/libs:\n"
+	n=0
+	for PKG in "${@}"; do
+		[[ "$n" == 2 ]] && n=0 && echo
+		printf "%-20s" "$PKG "
+		n="$(($n + 1))"
+	done
 	echo
+	print_line
+
+	__rmdir__ "$@"
+	echo -e "Feito!"
 }
 
-# Lista de todos o módulos disponíveis para instalação.
-readonly OnlineModules=(
-	'print_text'
-	'config_path'
-	'os'
-	)
 
 function self_update()
 {
+	# Baixar e instalar a ultima versão deste script disponível no github.
 	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 	local temp_update="$(mktemp)-shm-update"
 	
 	__download__ "$url_shm_main" "$temp_update" || return 1
-	cp "$temp_update" "$HOME"/.local/bin/shm
-	chmod +x "$HOME"/.local/bin/shm
+	cp "$temp_update" "$DIR_BIN"/shm
+	chmod +x "$DIR_BIN"/shm
 	shm --version
 }
 
 function list_online_modules()
 {
+	# Listar os módulos disponíveis para instalação.
 	n=0
 	for P in "${OnlineModules[@]}"; do
 		[[ "$n" == 2 ]] && n=0 && echo
@@ -238,22 +311,20 @@ function list_online_modules()
 
 _configure()
 {
-	[[ -f ~/.bashrc ]] && source ~/.bashrc
-	[[ -z $HOME ]] && HOME=~/
+	# Configurações para primeira execução.
 
-	_install_modules config_path 
-	source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
+	_install_modules config_path || return 1
+	[[ $(id -u) != 0 ]] && source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
 	backup
 	config_bashrc
+	config_zshrc
 
 	touch ~/.shmrc
-	grep -q -m 1 'export PATH_BASH_LIBS=' ~/.shmrc && return 0
-	echo -e "export PATH_BASH_LIBS=$HOME/.local/lib/bash-libs" >> ~/.shmrc
+	sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
+	#grep -q -m 1 "export PATH_BASH_LIBS=" ~/.shmrc && return 0
+	echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> $FILE_CONFIG
 }
 
-# OptionList
-OptionList=()
-PkgsList=()
 function argument_parse()
 {
 	[[ -z $1 ]] && return 1
@@ -268,7 +339,7 @@ function argument_parse()
 	num_pkg=0
 	# Percorrer todoa arguemtos.
 	for OPT in "${OptionList[@]}"; do
-		if [[ "$OPT" == '--install' ]]; then
+		if [[ "$OPT" == '--install' ]] || [[ "$OPT" == '-i' ]]; then
 			# Verificar quais argumentos vem depois da opção --install.
 			# o loop será quebrado quando encontrar outra opção ou seja -- ou -.
 			for pkg in "${OptionList[@]:$num}"; do
@@ -295,16 +366,17 @@ function main()
 
 	while [[ $1 ]]; do
 		case "$1" in
-			--install) _install_modules "${PkgsList[@]}";;
-			--remove) _remove_modules;;
-			--configure) _configure;;
+			-i|--install) _install_modules "${PkgsList[@]}";;
+			-r|--remove) _remove_modules;;
+			-c|--configure) _configure;;
 			--self-install) 
 					cp "$__script__" "$DIR_BIN"/shm
 					chmod +x "$DIR_BIN"/shm
 				;;
-			--self-update) self_update;;
-			--list) list_online_modules;;
-			--version) echo -e "$__version__";;
+			-u|--self-update) self_update;;
+			-l|--list) list_online_modules;;
+			-h|--help) usage; return; break;;
+			-v|--version) echo -e "$__version__";;
 			*) ;;
 		esac
 		shift
@@ -317,5 +389,5 @@ else
 	show_logo
 fi
 
-
+CONFIRM='True'
 __rmdir__ "$temp_dir" 1> /dev/null

@@ -116,6 +116,3 @@ function __copy__()
 		return 1
 	fi
 }
-
-
-__rmdir__ "$@"
