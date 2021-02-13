@@ -371,7 +371,7 @@ function update_modules_list()
 		_install_modules utils || return 1
 		source "$PATH_BASH_LIBS"/utils.sh
 	fi
-	Downloader='aria2c'
+	
 	case "$Downloader" in
 		curl) curl -fsSL "$URL_MODULES_LIST" -o "$temp_file_update" &;;
 		wget) wget -q "$URL_MODULES_LIST" -O "$temp_file_update" &;;
