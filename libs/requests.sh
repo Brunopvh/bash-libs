@@ -21,27 +21,29 @@ __version__='2021-02-13'
 
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
-[[ "$lib_os" != 'True' ]] && {
+# os
+if [[ "$lib_os" != 'True' ]]; then
 	source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar os.sh"
 		exit 1
 	}	
-}
+fi
 
-[[ "$lib_print_text" != 'True' ]] && {
+# print_text
+if [[ "$lib_print_text" != 'True' ]]; then
 	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar print_text.sh"
 		exit 1
 	}
-}
+fi
 
-
-[[ "$lib_utils" != 'True' ]] && {
+# utils
+if [[ "$lib_utils" != 'True' ]]; then
 	source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar utils.sh"
 		exit 1
 	}
-}
+fi
 
 export lib_requests='True'
 
@@ -212,7 +214,7 @@ get_html_file()
 		return 1
 	fi
 
-	download "$1" "$2" 1> /dev/null || return 1
+	download "$1" "$2" 1> /dev/null 2>&1 || return 1
 	return 0
 }
 
@@ -225,7 +227,7 @@ get_html_page()
 	# 
 	# Opções:
 	#      --find texto    -> Buscar uma ocorrência de texto.
-	#      --findall texto -> Busca todas as ocorrências de texto.
+	#      --finda-ll texto -> Busca todas as ocorrências de texto.
 	#
 
 	# Verificar se $1 e do tipo url.
@@ -235,7 +237,7 @@ get_html_page()
 	}
 
 	local temp_file_html=$(mktemp); rm -rf "$temp_file_html" 2> /dev/null
-	download "$1" "$temp_file_html" 1> /dev/null || return 1
+	download "$1" "$temp_file_html" 1> /dev/null 2>&1 || return 1
 
 	if [[ "$2" == '--find' ]]; then
 		Find="$3"

@@ -29,11 +29,15 @@ if [[ $(id -u) == 0 ]]; then
 	export readonly DIR_BIN='/usr/local/bin'
 	export readonly DIR_LIB='/usr/local/lib'
 	export readonly DIR_OPTIONAL='/opt'
+	export readonly DIR_APPLICATIONS='/usr/share/applications'
 else
 	export readonly DIR_BIN=~/.local/bin
 	export readonly DIR_LIB=~/.local/lib
 	export readonly DIR_OPTIONAL=~/.local/share
+	export readonly DIR_APPLICATIONS=~/.local/share/applications
 fi
+
+kernel_type=$(uname -s)
 
 is_admin(){
 	printf "Autênticação necessária para prosseguir "
@@ -68,7 +72,7 @@ function __rmdir__()
 			rm -rf "$1" 2> /dev/null || sudo rm -rf "$1"
 			sleep 0.08
 		else
-			_red "Não encontrado ... $1"
+			red "Não encontrado ... $1"
 		fi
 		shift
 	done
@@ -81,7 +85,7 @@ function __copy__()
 		echo 'OK'
 		return 0
 	else
-		_red "Falha"
+		red "Falha"
 		return 1
 	fi
 }
@@ -167,4 +171,20 @@ function unpack_archive()
 	# echo -e "$(date +%H:%M:%S)"
 	loop_pid "$!" "Descompactando ... [$extension_file] ... $(basename $path_file)"
 	return 0
+}
+
+
+function add_desktop_file()
+{
+	OutFile="$1"
+	Array=$2
+	
+	echo '[Desktop Entry]' > $OutFile
+	shift
+
+	while [[ $1 ]]; do
+		echo "Criando ... $1"
+		echo "$1" >> $OutFile
+		shift
+	done
 }
