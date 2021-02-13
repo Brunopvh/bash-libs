@@ -5,66 +5,35 @@ __version__='2021-02-13'
 # - REQUERIMENT = utils
 #
 
-[[ -z $PATH_BASH_LIBS ]] && {
-	if [[ -f ~/.shmrc ]]; then
-		source ~/.shmrc
-	else
-		echo -e "ERRO: não foi possivel importar print_text.sh"
-		exit 1
-	fi
-}
+[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
-[[ "$lib_print_text" != 'True' ]] && {
+# print_text
+if [[ "$lib_print_text" != 'True' ]]; then
 	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar print_text.sh"
 		exit 1
 	}
-}
+fi
 
-
-[[ "$lib_utils" != 'True' ]] && {
+# utils
+if [[ "$lib_utils" != 'True' ]]; then
 	source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar utils.sh"
 		exit 1
 	}
-}
+fi
 
 export lib_os='True'
 
 if [[ $(id -u) == 0 ]]; then
-	export readonly DIR_ROOT_BIN='/usr/local/bin'
-	export readonly DIR_ROOT_LIB='/usr/local/lib'
+	export readonly DIR_BIN='/usr/local/bin'
+	export readonly DIR_LIB='/usr/local/lib'
+	export readonly DIR_OPTIONAL='/opt'
 else
-	export readonly DIR_USER_BIN=~/.local/bin
-	export readonly DIR_USER_LIB=~/.local/lib
+	export readonly DIR_BIN=~/.local/bin
+	export readonly DIR_LIB=~/.local/lib
+	export readonly DIR_OPTIONAL=~/.local/share
 fi
-
-wait_pid()
-{
-	# Esta função serve para executar um loop enquanto um determinado processo
-	# do sistema está em execução, por exemplo um outro processo de instalação
-	# de pacotes, como o "apt install" ou "pacman install" por exemplo, o pid
-	# deve ser passado como argumento $1 da função. Enquanto esse processo existir
-	# o loop ira bloquar a execução deste script, que será retomada assim que o
-	# processo informado for encerrado.
-	local array_chars=('\' '|' '/' '-')
-	local num_char='0'
-	local Pid="$1"
-
-	while true; do
-		ALL_PROCS=$(ps aux)
-		if [[ $(echo -e "$ALL_PROCS" | grep -m 1 "$Pid" | awk '{print $2}') != "$Pid" ]]; then 
-			break
-		fi
-
-		Char="${array_chars[$num_char]}"		
-		echo -ne "Aguardando processo com pid [$Pid] finalizar [${Char}]\r" # $(date +%H:%M:%S)
-		sleep 0.15
-		num_char="$(($num_char+1))"
-		[[ "$num_char" == '4' ]] && num_char='0'
-	done
-	echo -e "Aguardando processo com pid [$Pid] ${CYellow}finalizado${CReset} [${Char}]"	
-}
 
 is_admin(){
 	printf "Autênticação necessária para prosseguir "
@@ -121,7 +90,7 @@ get_type_file()
 {
 	# Usar o comando "file" para obter o cabeçalho de um arquivo qualquer.
 	[[ -z $1 ]] && return 1
-	[[ -x $(command -v file) ]] file || {
+	[[ -x $(command -v file) ]] || {
 		echo 'None'
 		return 1
 	}
@@ -129,7 +98,7 @@ get_type_file()
 	file "$1" | cut -d ' ' -f 2
 }
 
-unpack_archive()
+function unpack_archive()
 {
 	# $1 = arquivo a ser descomprimido - (obrigatório)
 	# $2 = diretório de saida - (opcional)
@@ -145,7 +114,7 @@ unpack_archive()
 		DirUnpack=$(pwd)
 	fi
 
-	[[ ! -w "$DirUnpack" ]] && 
+	[[ ! -w "$DirUnpack" ]] && { 
 		red "Você não tem permissão de escrita [-w] em ... $DirUnpack"
 		return 1	
 	}
@@ -196,6 +165,6 @@ unpack_archive()
 	fi
 
 	# echo -e "$(date +%H:%M:%S)"
-	wait_pid "$!" "Descompactando ... [$extension_file] ... $(basename $path_file) em ... $DirUnpack"
+	loop_pid "$!" "Descompactando ... [$extension_file] ... $(basename $path_file)"
 	return 0
 }

@@ -5,15 +5,7 @@ __version__='2021-02-13'
 # - REQUERIMENT = print_text
 #
 
-[[ -z $PATH_BASH_LIBS ]] && {
-	if [[ -f ~/.shmrc ]]; then
-		source ~/.shmrc
-	else
-		echo -e "ERRO: não foi possivel importar print_text.sh"
-		exit 1
-	fi
-}
-
+[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 [[ "$lib_print_text" != 'True' ]] && {
 	source "$PATH_BASH_LIBS"/print_text.sh || echo -e "ERRO: não foi possivel importar print_text.sh"
 }
@@ -45,3 +37,60 @@ question()
 		*) printf "${CRed}Abortando${CReset}\n"; return 1;;
 	esac
 }
+
+loop_pid()
+{
+	# Esta função serve para executar um loop enquanto um determinado processo
+	# do sistema está em execução, por exemplo um outro processo de instalação
+	# de pacotes, como o "apt install" ou "pacman install" por exemplo, o pid
+	# deve ser passado como argumento $1 da função. Enquanto esse processo existir
+	# o loop ira bloquar a execução deste script, que será retomada assim que o
+	# processo informado for encerrado.
+	local array_chars=('\' '|' '/' '-')
+	local num_char='0'
+	local Pid="$1"
+	local MensageText=''
+
+	[[ $2 ]] && MensageText="$2"
+
+	while true; do
+		ALL_PROCS=$(ps aux)
+		[[ $(echo -e "$ALL_PROCS" | grep -m 1 "$Pid" | awk '{print $2}') != "$Pid" ]] && break
+		
+		Char="${array_chars[$num_char]}"		
+		echo -ne "$MensageText ${CYellow}[${Char}]${CReset}\r" # $(date +%H:%M:%S)
+		sleep 0.12
+		
+		num_char="$(($num_char+1))"
+		[[ "$num_char" == '4' ]] && num_char='0'
+	done
+	echo -e "$MensageText [${Char}] OK"	
+}
+
+wait_pid()
+{
+	# Esta função serve para executar um loop enquanto um determinado processo
+	# do sistema está em execução, por exemplo um outro processo de instalação
+	# de pacotes, como o "apt install" ou "pacman install" por exemplo, o pid
+	# deve ser passado como argumento $1 da função. Enquanto esse processo existir
+	# o loop ira bloquar a execução deste script, que será retomada assim que o
+	# processo informado for encerrado.
+	local array_chars=('\' '|' '/' '-')
+	local num_char='0'
+	local Pid="$1"
+
+	while true; do
+		ALL_PROCS=$(ps aux)
+		if [[ $(echo -e "$ALL_PROCS" | grep -m 1 "$Pid" | awk '{print $2}') != "$Pid" ]]; then 
+			break
+		fi
+
+		Char="${array_chars[$num_char]}"		
+		echo -ne "Aguardando processo com pid [$Pid] finalizar [${Char}]\r" # $(date +%H:%M:%S)
+		sleep 0.15
+		num_char="$(($num_char+1))"
+		[[ "$num_char" == '4' ]] && num_char='0'
+	done
+	echo -e "Aguardando processo com pid [$Pid] ${CYellow}finalizado${CReset} [${Char}]"	
+}
+

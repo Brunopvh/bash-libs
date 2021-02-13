@@ -19,14 +19,7 @@ __version__='2021-02-13'
 #
 #
 
-[[ -z $PATH_BASH_LIBS ]] && {
-	if [[ -f ~/.shmrc ]]; then
-		source ~/.shmrc
-	else
-		echo -e "ERRO: não foi possivel importar print_text.sh"
-		exit 1
-	fi
-}
+[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
 [[ "$lib_os" != 'True' ]] && {
 	source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
@@ -75,10 +68,10 @@ function download()
 	[[ ! -z $path_file ]] && blue "Salvando ... $path_file"
 	blue "Conectando ... $1"
 
-	if [[ -x $(command -v aria2c) ]]; then
-		Downloader='aria2c'
-	elif [[ -x $(command -v wget) ]]; then
+	if [[ -x $(command -v wget) ]]; then
 		Downloader='wget'
+	elif [[ -x $(command -v aria2c) ]]; then
+		Downloader='aria2c'
 	elif [[ -x $(command -v curl) ]]; then
 		Downloader='curl'
 	else
@@ -208,7 +201,7 @@ get_html_file()
 		return 1
 	}
 	
-	if [[ -z $2 ]] || [[ ! -f $2 ]]; then
+	if [[ -z $2 ]]; then
 		red "(get_html_file): Nenhum arquivo foi passado no argumento '2'."
 		return 1
 	fi
@@ -241,7 +234,7 @@ get_html_page()
 		return 1
 	}
 
-	local temp_file_html=$(mktemp)
+	local temp_file_html=$(mktemp); rm -rf "$temp_file_html" 2> /dev/null
 	download "$1" "$temp_file_html" 1> /dev/null || return 1
 
 	if [[ "$2" == '--find' ]]; then

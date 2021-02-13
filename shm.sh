@@ -172,12 +172,13 @@ function __download__()
 	echo -e "Conectando ... $1"
 	while true; do
 		if [[ ! -z $path_file ]]; then
-			if is_executable aria2c; then
-				aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" && break
+			
+			if is_executable wget; then
+				wget -c "$url" -O "$path_file" && break
 			elif is_executable curl; then
 				curl -C - -S -L -o "$path_file" "$url" && break
-			elif is_executable wget; then
-				wget -c "$url" -O "$path_file" && break
+			elif is_executable aria2c; then
+				aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" && break
 			else
 				return 1
 				break
@@ -227,8 +228,9 @@ function _install_modules()
 	done
 	echo
 	print_line
-
-	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
+	echo -ne 'Conectando aguarde ... '
+	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" 1> /dev/null 2>&1 || { echo 'ERRO'; return 1; }
+	echo 'OK'
 	cd "$temp_dir"
 	echo -ne "Descompactando ... $FILE_LIBS_TAR "
 	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
@@ -343,7 +345,7 @@ function argument_parse()
 			# Verificar quais argumentos vem depois da opção --install.
 			# o loop será quebrado quando encontrar outra opção ou seja -- ou -.
 			for pkg in "${OptionList[@]:$num}"; do
-				if [[ "$pkg" != '--install' ]]; then
+				if [[ "$pkg" != '--install' ]] && [[ "$pkg" != '-i' ]]; then
 					# Verificar se o primeiro caracter e igual a -. Se for o loop deve ser
 					# encerrado pois é uma opção e não um pacote.
 					echo -e "${pkg[@]:0:1}" | grep -q '-' && break
