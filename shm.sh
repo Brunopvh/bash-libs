@@ -366,7 +366,7 @@ function update_modules_list()
 	if [[ -f ./libs/utils.sh ]]; then
 		source ./libs/utils.sh
 	elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
-		source ./libs/utils.sh
+		source "$PATH_BASH_LIBS/utils.sh"
 	else
 		_install_modules utils || return 1
 		source "$PATH_BASH_LIBS"/utils.sh
