@@ -12,6 +12,7 @@
 #--------------------------------------------------#
 # https://github.com/Brunopvh/bash-libs
 # sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 #--------------------------------------------------#
 # USO
@@ -220,25 +221,25 @@ function __download__()
 	if [[ ! -z $path_file ]]; then
 		case "$Downloader" in 
 			aria2c) 
-					aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 1> /dev/null
+					aria2c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 1> /dev/null
 					;;
 			curl)
-				curl -C - -S -L -s -o "$path_file" "$url"
+				curl -S -L -s -o "$path_file" "$url"
 					;;
 			wget)
-				wget -q -c "$url" -O "$path_file"
+				wget -q "$url" -O "$path_file"
 					;;
 		esac
 	else
 		case "$Downloader" in 
 			aria2c) 
-					aria2c -c "$url"
+					aria2c "$url"
 					;;
 			curl)
-					curl -C - -S -L -O "$url"
+					curl -S -L -O "$url"
 					;;
 			wget)
-				wget -c "$url"
+				wget "$url"
 					;;
 		esac
 	fi
@@ -359,7 +360,6 @@ function list_modules()
 function update_modules_list()
 {
 	# Usar o módulo utils.sh
-	clear
 	local temp_file_update=$(mktemp)
 
 	cd "$dir_of_project"
@@ -377,7 +377,7 @@ function update_modules_list()
 		wget) wget -q "$URL_MODULES_LIST" -O "$temp_file_update" &;;
 		aria2c) aria2c "$URL_MODULES_LIST" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
 	esac	
-	wait_pid "$!" "Atualizando a lista de módulos aguarde"
+	loop_pid "$!" "Atualizando a lista de módulos aguarde"
 
 	__copy_mod__ "$temp_file_update" "$MODULES_LIST"
 }
