@@ -349,7 +349,7 @@ function list_modules()
 {
 	# Listar os módulos disponíveis para instalação.
 	n=0
-	for MOD in $(cat $MODULES_LIST); do
+	for MOD in $(cat $MODULES_LIST | cut -d '=' -f 1); do
 		[[ "$n" == 2 ]] && n=0 && echo
 		printf "%-20s" "$MOD "
 		n="$(($n + 1))"

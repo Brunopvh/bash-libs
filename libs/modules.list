@@ -1,4 +1,5 @@
-os
-requests
-print_text
-utils
+config_path = Insere ~/.local/bin no PATH do usuário sempre que fizer login
+os = Várias funções para realizar operações  no sistema.
+requests = Baixar arquivos da web, filtra texto em páginas html e mais.
+print_text = Imprimir texto com formatação e cores
+utils = várias funcões para shell, loop processos e mais
