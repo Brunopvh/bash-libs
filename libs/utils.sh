@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__='2021-02-13'
+version_utils='2021-02-13'
 #
 # - REQUERIMENT = print_text
 #

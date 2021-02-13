@@ -3,7 +3,7 @@
 # Este script serve para inserir os diretórios que contém binário na
 # HOME('~/bin' e '~/.local/bin') na variável PATH do usuario atual.
 #
-__version__='2021-02-09'
+version_config_path='2021-02-13'
 #
 
 # NÃO pode ser root.

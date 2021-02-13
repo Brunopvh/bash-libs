@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__='2021-02-09'
+version_print_text='2021-02-13'
 lib_print_text='True'
 
 #=============================================================#

@@ -1,12 +1,48 @@
 #!/usr/bin/env bash
 #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Shell Package Manager
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#
 # Este script instala módulos/libs para o bash, para facilitar a importação de 
 # códigos em bash. Semelhante ao pip do python.
+#
 #--------------------------------------------------#
-# URL
+# URL/INSTALAÇÃO
 #--------------------------------------------------#
+# https://github.com/Brunopvh/bash-libs
+# sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+#
+#--------------------------------------------------#
+# USO
+#--------------------------------------------------#
+# Depois de executar o script de instalação configure o 
+# programa para primeiro uso.
+#   Verifique se a instalação foi efetuada correntamente
+# >> $ ls ~/.local/bin/shm OU
+# >> $ ls /usr/local/bin/shm
+#
+# E recomendado passar o caminho absoluto do programa na primeira execução
+# para evitar problemas com o PATH do usuário, se a instalação foi feita como
+# root ou sudo NÃO é necessário passar o caminho absoluto para chamada deste
+# script pois '/usr/local/bin' já está incluso no PATH na maioria das Distros.
+# PARA INSTALAÇÃO NA HOME: ~/.local/bin/shm --configure
+# PARA INSTALAÇÃO ROOT: shm --configure
+#
+# PRONTO agora você pode usar o script para instalar os módulos disponíveis no
+# github. NÃO é recomendado usar root ou sudo diretamente (embora funcione).
+#
+# $ shm --list => Exibe os módulos disponíveis
+# $ shm --help => Mostra ajuda
+# $ shm update => Atualiza a lista de modulos.
+# $ shm --install <módulo> Exemplo shm --install requests os print_text
+#                          Instala os módulos os, print_text e requests.
+#
+# $ shm --self-update => Atualiza este script para ultima versão disponível no github.
 # 
-# sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/shm.sh)" 
+# 
+#
+#
 #
 
 readonly __version__='2021-02-13'
@@ -37,23 +73,20 @@ readonly MODULES_LIST="$DIR_CONFIG/modules.list"
 [[ -z $HOME ]] && HOME=~/
 [[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
 
-#==================================================================#
-# Lista de todos o módulos disponíveis para instalação.
-#==================================================================#
-readonly OnlineModules=(
-	'config_path'
-	'os'
-	'print_text'
-	'requests'
-	'utils'
-	)
-
-
 # Argumentos/Opções passados na linha de comando.
 OptionList=() 
 
 # Lista de pacotes a serem instalados.
 PkgsList=()
+
+# Verificar gerenciador de downloads.
+if [[ -x $(command -v wget) ]]; then
+	Downloader='wget'
+elif [[ -x $(command -v aria2c) ]]; then
+	Downloader='aria2c'
+elif [[ -x $(command -v curl) ]]; then
+	Downloader='curl'
+fi
 
 COLUMNS=$(tput cols)
 RED='\e[0;31m'
@@ -106,6 +139,8 @@ cat << EOF
       --self-install         Instala este script(offline) no seu sistema.
       -i|--install (módulo)  Instalar um ou mais módulo(s) no sistema.
       -r|--remove (módulo)   Remove um ou mais módulos do seu sistema.
+
+      up|update  Atualiza a lista de scripts disponíveis para instalação.
 
 EOF
 }
@@ -175,18 +210,11 @@ function __download__()
 	local url="$1"
 	local path_file="$2"
 
-	if [[ -x $(command -v wget) ]]; then
-		Downloader='wget'
-	elif [[ -x $(command -v aria2c) ]]; then
-		Downloader='aria2c'
-	elif [[ -x $(command -v curl) ]]; then
-		Downloader='curl'
-	else
+	if [[ -z $Downloader ]]; then
 		red "(download): Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
 	fi
-
 
 	echo -ne "Conectando aguarde ... "
 	if [[ ! -z $path_file ]]; then
@@ -315,6 +343,7 @@ function self_install()
 	chmod +x "$DIR_BIN"/shm || return 1
 }
 
+
 function list_modules()
 {
 	# Listar os módulos disponíveis para instalação.
@@ -329,7 +358,28 @@ function list_modules()
 
 function update_modules_list()
 {
-	__download__ "$URL_MODULES_LIST" "$MODULES_LIST" || return 1	
+	# Usar o módulo utils.sh
+	clear
+	local temp_file_update=$(mktemp)
+
+	cd "$dir_of_project"
+	if [[ -f ./libs/utils.sh ]]; then
+		source ./libs/utils.sh
+	elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
+		source ./libs/utils.sh
+	else
+		_install_modules utils || return 1
+		source "$PATH_BASH_LIBS"/utils.sh
+	fi
+	Downloader='aria2c'
+	case "$Downloader" in
+		curl) curl -fsSL "$URL_MODULES_LIST" -o "$temp_file_update" &;;
+		wget) wget -q "$URL_MODULES_LIST" -O "$temp_file_update" &;;
+		aria2c) aria2c "$URL_MODULES_LIST" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
+	esac	
+	wait_pid "$!" "Atualizando a lista de módulos aguarde"
+
+	__copy_mod__ "$temp_file_update" "$MODULES_LIST"
 }
 
 _configure()
@@ -399,6 +449,8 @@ function main()
 			-l|--list) list_modules;;
 			-h|--help) usage; return; break;;
 			-v|--version) echo -e "$__version__";;
+
+			up|update) update_modules_list;;
 			*) ;;
 		esac
 		shift
