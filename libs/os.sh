@@ -1,44 +1,43 @@
 #!/usr/bin/env bash
 #
-__version__='2021-02-11'
-# Requer a lib print_text
+__version__='2021-02-13'
+# - REQUERIMENT = print_text
+# - REQUERIMENT = utils
+#
 
-[[ -f ~/.shmrc ]] && source ~/.shmrc
+[[ -z $PATH_BASH_LIBS ]] && {
+	if [[ -f ~/.shmrc ]]; then
+		source ~/.shmrc
+	else
+		echo -e "ERRO: não foi possivel importar print_text.sh"
+		exit 1
+	fi
+}
+
 [[ "$lib_print_text" != 'True' ]] && {
-	source "$PATH_BASH_LIBS"/print_text.sh || echo -e "Erro: não foi possivel importar print_text.sh"
+	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
+		echo -e "ERRO: não foi possivel importar print_text.sh"
+		exit 1
+	}
+}
+
+
+[[ "$lib_utils" != 'True' ]] && {
+	source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
+		echo -e "ERRO: não foi possivel importar utils.sh"
+		exit 1
+	}
 }
 
 export lib_os='True'
-export readonly DIR_USER_BIN=~/.local/bin
-export readonly DIR_USER_LIB=~/.local/lib
 
-question()
-{
-	# Será necessário indagar o usuário repetidas vezes durante a execução
-	# do programa, em que a resposta deve ser do tipo SIM ou NÃO (s/n)
-	# esta função automatiza as indagações.
-	#
-	#   se teclar "s" -----------------> retornar 0  
-	#   se teclar "n" ou nada ---------> retornar 1.
-	#
-	# $1 = Mensagem a ser exibida para o usuário, a resposta deve ser SIM ou NÃO (s/n).
-	
-	# O usuário não deve ser indagado caso a opção "-y" ou --yes esteja presente 
-	# na linha de comando. Nesse caso a função irá retornar '0' como se o usuário estivesse
-	# aceitando todas as indagações.
-	[[ "$AssumeYes" == 'True' ]] && return 0
-		
-	printf "$@ ${CYellow}s${CReset}/${CRed}N${CReset}?: "
-	read -t 15 -n 1 sn
-	echo ' '
-
-	if [[ "${sn,,}" == 's' ]]; then
-		return 0
-	else
-		printf "${CRed}Abortando${CReset}\n"
-		return 1
-	fi
-}
+if [[ $(id -u) == 0 ]]; then
+	export readonly DIR_ROOT_BIN='/usr/local/bin'
+	export readonly DIR_ROOT_LIB='/usr/local/lib'
+else
+	export readonly DIR_USER_BIN=~/.local/bin
+	export readonly DIR_USER_LIB=~/.local/lib
+fi
 
 wait_pid()
 {
@@ -77,3 +76,46 @@ is_admin(){
 		return 1
 	fi
 }
+
+function __rmdir__()
+{
+	# Função para remover diretórios e arquivos, inclusive os arquivos é diretórios
+	# que o usuário não tem permissão de escrita, para isso será usado o "sudo".
+	#
+	# Use:
+	#     __rmdir__ <diretório> ou
+	#     __rmdir__ <arquivo>
+	# Se o arquivo/diretório não for removido por falta de privilegio 'root'
+	# o comando de remoção será com 'sudo'.
+	[[ -z $1 ]] && return 1
+
+	local msg="Deseja ${CRed}deletar${CReset} os seguintes arquivos/diretórios? : $@\n"
+	question "$msg" || return 1
+
+	while [[ $1 ]]; do		
+		cd $(dirname "$1")
+		if [[ -f "$1" ]] || [[ -d "$1" ]] || [[ -L "$1" ]]; then
+			printf "Removendo ... $1\n"
+			rm -rf "$1" 2> /dev/null || sudo rm -rf "$1"
+			sleep 0.08
+		else
+			_red "Não encontrado ... $1"
+		fi
+		shift
+	done
+}
+
+function __copy__()
+{
+	echo -ne "Copiando ... $1 "
+	if cp -R "$1" "$2"; then
+		echo 'OK'
+		return 0
+	else
+		_red "Falha"
+		return 1
+	fi
+}
+
+
+__rmdir__ "$@"
