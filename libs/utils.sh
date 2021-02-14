@@ -53,6 +53,7 @@ loop_pid()
 
 	[[ $2 ]] && MensageText="$2"
 
+	echo -ne "$(printf "%-$(tput cols)s" | tr ' ' ' ')\r" # Preencher a linha atual com espaços em branco.
 	while true; do
 		ALL_PROCS=$(ps aux)
 		[[ $(echo -e "$ALL_PROCS" | grep -m 1 "$Pid" | awk '{print $2}') != "$Pid" ]] && break

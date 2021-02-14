@@ -3,3 +3,4 @@ os = Várias funções para realizar operações  no sistema.
 requests = Baixar arquivos da web, filtra texto em páginas html e mais.
 print_text = Imprimir texto com formatação e cores
 utils = várias funcões para shell, loop processos e mais
+crypto = funções para facilitar o uso do gpg em scripts.

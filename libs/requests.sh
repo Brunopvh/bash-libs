@@ -47,6 +47,16 @@ fi
 
 export lib_requests='True'
 
+# Verificar gerenciador de downloads.
+if [[ -x $(command -v wget) ]]; then
+	export Downloader='wget'
+elif [[ -x $(command -v aria2c) ]]; then
+	export Downloader='aria2c'
+elif [[ -x $(command -v curl) ]]; then
+	export Downloader='curl'
+else
+	export Downloader='None'
+fi
 
 function download()
 {
@@ -69,18 +79,11 @@ function download()
 	local url="$1"
 	local path_file="$2"
 
-	if [[ -x $(command -v wget) ]]; then
-		Downloader='wget'
-	elif [[ -x $(command -v aria2c) ]]; then
-		Downloader='aria2c'
-	elif [[ -x $(command -v curl) ]]; then
-		Downloader='curl'
-	else
+	if [[ "$Downloader" == 'None' ]]; then
 		red "(download): Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
 	fi
-
 
 	echo -e "Conectando $url"
 	if [[ ! -z $path_file ]]; then

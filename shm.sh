@@ -50,11 +50,12 @@ readonly __version__='2021-02-13'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
+#readonly _shasum_script='e631840fa16cca6b4ba0e46f7bc180bc1bfd03ea462f12987de48a659a05c1ab'
 readonly dir_of_project=$(dirname "$__script__")
 readonly temp_dir=$(mktemp --directory); mkdir -p "$temp_dir"
+readonly FILE_LIBS_TAR="$temp_dir/bash-libs.tar.gz"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly URL_MODULES_LIST='https://raw.github.com/Brunopvh/bash-libs/main/libs/modules.list'
-readonly FILE_LIBS_TAR="$temp_dir/bash-libs.tar.gz"
 readonly url_shell_pkg_manager='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 
 if [[ $(id -u) == 0 ]]; then
@@ -124,7 +125,6 @@ function show_logo()
 	echo -e "${GREEN}${__appname__[@]:0:1}${RESET}${__appname__[@]:1} V${__version__}"
 	echo -e "${GREEN}G${RESET}ithub $url_shell_pkg_manager"
 	echo -e "${GREEN}A${RESET}utor $__author__"
-	print_line
 }
 
 function usage()
@@ -197,6 +197,21 @@ function __copy_mod__()
 	fi
 }
 
+function _ping()
+{
+	[[ ! -x $(command -v ping) ]] && {
+		_red "(_ping) ERRO ... comando ping não instalado."
+		return 1
+	}
+
+	if ping -c 2 8.8.8.8 1> /dev/null 2>&1; then
+		return 0
+	else
+		_red "ERRO ... você está off-line"
+		return 1
+	fi
+}
+
 function __download__()
 {
 	# Baixa arquivos da internet.
@@ -212,6 +227,7 @@ function __download__()
 
 	local url="$1"
 	local path_file="$2"
+	_ping || return 1
 
 	if [[ -z $Downloader ]]; then
 		red "(download): Instale curl|wget|aria2c para prosseguir."
@@ -250,10 +266,9 @@ function __download__()
 	_red '(__download__): ERRO'
 }
 
-function _install_modules()
+function install_modules()
 {
 	# $1 = modulo(s) a serem instalados.
-
 	print_line
 	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
 	n=0
@@ -263,8 +278,7 @@ function _install_modules()
 		n="$(($n + 1))"
 	done
 	echo
-
-	print_line
+	
 	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
 
 	cd "$temp_dir"
@@ -283,6 +297,9 @@ function _install_modules()
 					;;
 			config_path) 
 					__copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
+					;;
+			crypto)
+					__copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh
 					;;
 			os) 
 				__copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh
@@ -303,7 +320,7 @@ function _install_modules()
 	echo -e "Feito!"
 }
 
-function _remove_modules()
+function remove_modules()
 {
 	print_line
 	echo -e "${RED}R${RESET}emovendo os seguintes módulos/libs:\n"
@@ -320,14 +337,37 @@ function _remove_modules()
 	echo -e "Feito!"
 }
 
+function self_shasum()
+{
+	sha256sum "$__script__" | cut -d ' ' -f 1
+}
 
 function self_update()
 {
 	# Baixar e instalar a ultima versão deste script disponível no github.
 	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 	local temp_file_update=$(mktemp)
+
+	# Importar o módulo utils se ainda não estiver importado.
+	cd "$dir_of_project"
+	[[ -z $lib_utils ]] && {
+		if [[ -f ./libs/utils.sh ]]; then
+			source ./libs/utils.sh
+		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
+			source "$PATH_BASH_LIBS/utils.sh"
+		else
+			echo -e "(self_update) ERRO ... módulo utils.sh não encontrado."]
+			return 1
+		fi
+	}
 	
-	__download__ "$url_shm_main" "$temp_file_update" || return 1
+	_ping || return 1
+	case "$Downloader" in
+		curl) curl -fsSL "$url_shm_main" -o "$temp_file_update" &;;
+		wget) wget -q "$url_shm_main" -O "$temp_file_update" &;;
+		aria2c) aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
+	esac
+	loop_pid "$!" "Baixando atualização no github aguarde..."
 	cp "$temp_file_update" "$DIR_BIN"/shm
 	chmod +x "$DIR_BIN"/shm
 	
@@ -373,18 +413,22 @@ function list_modules()
 function update_modules_list()
 {
 	# Usar o módulo utils.sh
-	local temp_file_update=$(mktemp)
+	local temp_file_update=$(mktemp); rm -rf "$temp_file_update" 2> /dev/null
 
+	# Importar o módulo utils se ainda não estiver importado.
 	cd "$dir_of_project"
-	if [[ -f ./libs/utils.sh ]]; then
-		source ./libs/utils.sh
-	elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
-		source "$PATH_BASH_LIBS/utils.sh"
-	else
-		_install_modules utils || return 1
-		source "$PATH_BASH_LIBS"/utils.sh
-	fi
+	[[ -z $lib_utils ]] && {
+		if [[ -f ./libs/utils.sh ]]; then
+			source ./libs/utils.sh
+		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
+			source "$PATH_BASH_LIBS/utils.sh"
+		else
+			echo -e "(self_update) ERRO ... módulo utils.sh não encontrado."]
+			return 1
+		fi
+	}
 	
+	_ping || return 1
 	case "$Downloader" in
 		curl) curl -fsSL "$URL_MODULES_LIST" -o "$temp_file_update" &;;
 		wget) wget -q "$URL_MODULES_LIST" -O "$temp_file_update" &;;
@@ -398,10 +442,17 @@ function update_modules_list()
 function _configure()
 {
 	# Configurações para primeira execução.
-
-	_install_modules config_path || return 1
+	cd "$dir_of_project"
+	if [[ -f ./libs/config_path.sh ]]; then
+		source ./libs/config_path.sh
+	elif [[ -f "$PATH_BASH_LIBS"/config_path.sh ]]; then
+		source "$PATH_BASH_LIBS"/config_path.sh
+	else
+		install_modules config_path || return 1
+		source "$PATH_BASH_LIBS"/config_path.sh
+	fi
+	
 	update_modules_list || return 1
-	source "$PATH_BASH_LIBS"/config_path.sh 2> /dev/null
 	backup
 	config_bashrc
 	config_zshrc
@@ -451,11 +502,23 @@ function argument_parse()
 function main()
 {
 	argument_parse "$@"
+	show_logo
+	cd "$dir_of_project"
+
+	# Obter o módulo utils.sh
+	if [[ ! -f ./libs/utils.sh ]] && [[ ! -f "$PATH_BASH_LIBS"/utils.sh ]]; then
+		install_modules utils
+	fi
+
+	# Obter o módulo config_path.sh
+	if [[ ! -f ./libs/config_path.sh ]] && [[ ! -f "$PATH_BASH_LIBS"/config_path.sh ]]; then
+		install_modules config_path
+	fi
 
 	while [[ $1 ]]; do
 		case "$1" in
-			-i|--install) _install_modules "${PkgsList[@]}";;
-			-r|--remove) _remove_modules;;
+			-i|--install) install_modules "${PkgsList[@]}";;
+			-r|--remove) remove_modules;;
 			-c|--configure) _configure;;
 			-l|--list) list_modules;;
 			-u|--self-update) self_update;;
@@ -464,6 +527,7 @@ function main()
 
 			--info) shift; info_mod "$@";;
 			--self-install) self_install;;
+			--self-shasum) self_shasum;;
 
 			up|update) update_modules_list;;
 			*) ;;
