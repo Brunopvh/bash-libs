@@ -137,9 +137,11 @@ cat << EOF
       -c|--configure    Configura este script e suas configurações no sistema.
       -u|--self-update  Instala a ultima versão(online) deste script disponível no github.
 
-      --self-install         Instala este script(offline) no seu sistema.
       -i|--install (módulo)  Instalar um ou mais módulo(s) no sistema.
       -r|--remove (módulo)   Remove um ou mais módulos do seu sistema.
+
+      --info <module>     Mostra informações sobre um ou mais módulos
+      --self-install      Instala este script(offline) no seu sistema.
 
       up|update  Atualiza a lista de scripts disponíveis para instalação.
 
@@ -344,6 +346,17 @@ function self_install()
 	chmod +x "$DIR_BIN"/shm || return 1
 }
 
+function info_mod()
+{
+	for mod in "${@}"; do
+		if grep -q ^"$mod = " "$MODULES_LIST"; then
+			grep ^"$mod = " "$MODULES_LIST"
+		else
+			_red "Módulo indisponível ... $mod"
+			sleep 0.1
+		fi
+	done
+}
 
 function list_modules()
 {
@@ -382,7 +395,7 @@ function update_modules_list()
 	__copy_mod__ "$temp_file_update" "$MODULES_LIST"
 }
 
-_configure()
+function _configure()
 {
 	# Configurações para primeira execução.
 
@@ -444,11 +457,13 @@ function main()
 			-i|--install) _install_modules "${PkgsList[@]}";;
 			-r|--remove) _remove_modules;;
 			-c|--configure) _configure;;
-			--self-install) self_install;; 
-			-u|--self-update) self_update;;
 			-l|--list) list_modules;;
+			-u|--self-update) self_update;;
 			-h|--help) usage; return; break;;
 			-v|--version) echo -e "$__version__";;
+
+			--info) shift; info_mod "$@";;
+			--self-install) self_install;;
 
 			up|update) update_modules_list;;
 			*) ;;
