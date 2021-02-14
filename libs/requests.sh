@@ -58,6 +58,22 @@ else
 	export Downloader='None'
 fi
 
+
+function __ping__()
+{
+	[[ ! -x $(command -v ping) ]] && {
+		_red "(_ping) ERRO ... comando ping não instalado."
+		return 1
+	}
+
+	if ping -c 1 8.8.8.8 1> /dev/null 2>&1; then
+		return 0
+	else
+		_red "ERRO ... você está off-line"
+		return 1
+	fi
+}
+
 function download()
 {
 	# Baixa arquivos da internet.
@@ -85,6 +101,7 @@ function download()
 		return 1
 	fi
 
+	__ping__ || return 1
 	echo -e "Conectando $url"
 	if [[ ! -z $path_file ]]; then
 		case "$Downloader" in 
@@ -113,7 +130,7 @@ function download()
 	fi
 
 	[[ $? == 0 ]] && echo 'OK' && return 0
-	red '(__download__): ERRO'
+	red '(download): ERRO'
 }
 
 

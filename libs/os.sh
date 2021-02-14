@@ -50,6 +50,16 @@ is_admin(){
 	fi
 }
 
+is_executable()
+{
+	# Função para verificar se um executável existe no PATH do sistema.
+	if [[ -x $(which "$1" 2> /dev/null) ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 function __rmdir__()
 {
 	# Função para remover diretórios e arquivos, inclusive os arquivos é diretórios
