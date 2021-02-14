@@ -354,7 +354,7 @@ function self_update()
 		wget) wget -q "$url_shm_main" -O "$temp_file_update" &;;
 		aria2c) aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
 	esac
-	loop_pid "$!" "Baixando atualização no github aguarde..."
+	loop_pid "$!" "Baixando atualização aguarde..."
 	cp "$temp_file_update" "$DIR_BIN"/shm
 	chmod +x "$DIR_BIN"/shm
 	

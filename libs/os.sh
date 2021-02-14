@@ -30,11 +30,13 @@ if [[ $(id -u) == 0 ]]; then
 	export readonly DIR_LIB='/usr/local/lib'
 	export readonly DIR_OPTIONAL='/opt'
 	export readonly DIR_APPLICATIONS='/usr/share/applications'
+	export readonly DIR_ICONS='/usr/share/icons/hicolor'
 else
 	export readonly DIR_BIN=~/.local/bin
 	export readonly DIR_LIB=~/.local/lib
 	export readonly DIR_OPTIONAL=~/.local/share
 	export readonly DIR_APPLICATIONS=~/.local/share/applications
+	export readonly DIR_ICONS=~/.local/share/icons
 fi
 
 kernel_type=$(uname -s)
@@ -130,7 +132,7 @@ function unpack_archive()
 	# $2 = diretório de saida - (opcional)
 
 	[[ ! -f "$1" ]] && {
-		red "(_unpack): nenhum arquivo informado no parâmetro 1."
+		red "(unpack_archive): nenhum arquivo informado no parâmetro 1."
 		return 1
 	}
 
@@ -164,7 +166,7 @@ function unpack_archive()
 		elif [[ "${path_file: -4}" == '.deb' ]]; then    # .deb
 			extension_file='Debian'
 		else
-			printf "${CRed}(_unpack): Arquivo não suportado ... $path_file${CReset}\n"
+			printf "${CRed}(unpack_archive): Arquivo não suportado ... $path_file${CReset}\n"
 			return 1
 		fi
 	fi
