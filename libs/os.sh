@@ -112,6 +112,18 @@ get_type_file()
 	file "$1" | cut -d ' ' -f 2
 }
 
+__sudo__()
+{
+	# Função para executar comandos com o "sudo" e retornar '0' ou '1'.
+	echo -e "${CYellow}E${CReset}xecutando ... sudo $@"
+	if sudo "$@"; then
+		return 0
+	else
+		red "Falha ... sudo $@"
+		return 1
+	fi
+}
+
 function unpack_archive()
 {
 	# $1 = arquivo a ser descomprimido - (obrigatório)
@@ -191,7 +203,6 @@ function add_desktop_file()
 	
 	echo '[Desktop Entry]' > $OutFile
 	shift
-
 	while [[ $1 ]]; do
 		echo "Criando ... $1"
 		echo "$1" >> $OutFile

@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-13'
+readonly __version__='2021-02-14'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -292,28 +292,15 @@ function install_modules()
 
 	while [[ $1 ]]; do
 		case "$1" in
-			print_text) 
-					__copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh
-					;;
-			config_path) 
-					__copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh
-					;;
-			crypto)
-					__copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh
-					;;
-			os) 
-				__copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh
-				;;
-			requests)
-				__copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh
-				;;
-			utils)
-				__copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh
-				;;
-			*) 
-				_red "pacote indisponivel ... $PKG"
-				sleep 0.1
-				;;
+			print_text) __copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh;;
+			config_path) __copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh;;
+			crypto) __copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh;;
+			os) __copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh;;
+			platform) __copy_mod__ platform.sh "$PATH_BASH_LIBS"/platform.sh;;
+			pkgmanager) __copy_mod__ pkgmanager.sh "$PATH_BASH_LIBS"/pkgmanager.sh;;
+			requests) __copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh;;
+			utils) __copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh;;
+			*) _red "pacote indisponivel ... $PKG"; sleep 0.1;;
 		esac
 		shift
 	done
@@ -502,7 +489,6 @@ function argument_parse()
 function main()
 {
 	argument_parse "$@"
-	show_logo
 	cd "$dir_of_project"
 
 	# Obter o módulo utils.sh
