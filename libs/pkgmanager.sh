@@ -9,11 +9,11 @@ version_pkgmanager='2021-02-14'
 #
 #
 
-[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
+[[ $PATH_BASH_LIBS ]] && source ~/.shmrc 2> /dev/null
 
 # os
 if [[ "$lib_os" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
+	source "$os" 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar os.sh"
 		exit 1
 	}
@@ -21,7 +21,7 @@ fi
 
 # print_text
 if [[ "$lib_print_text" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
+	source "$print_text" 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar print_text.sh"
 		exit 1
 	}
@@ -29,7 +29,7 @@ fi
 
 # utils
 if [[ "$lib_utils" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
+	source "$utils" 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar utils.sh"
 		exit 1
 	}
@@ -37,7 +37,7 @@ fi
 
 # requests
 if [[ "$lib_requests" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
+	source "$requests" 2> /dev/null || {
 		echo -e "ERRO: não foi possivel importar requests.sh"
 		exit 1
 	}

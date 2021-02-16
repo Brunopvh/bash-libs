@@ -19,7 +19,7 @@ version_requests='2021-02-15'
 #
 #
 
-[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
+source ~/.shmrc
 
 # os
 if [[ "$lib_os" != 'True' ]]; then
@@ -50,7 +50,7 @@ export lib_requests='True'
 # Verificar gerenciador de downloads.
 if [[ -x $(command -v aria2c) ]]; then
 	export clientDownloader='aria2c'
-if [[ -x $(command -v wget) ]]; then
+elif [[ -x $(command -v wget) ]]; then
 	export clientDownloader='wget'
 elif [[ -x $(command -v curl) ]]; then
 	export clientDownloader='curl'
