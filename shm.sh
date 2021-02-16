@@ -74,6 +74,7 @@ readonly MODULES_LIST="$DIR_CONFIG/modules.list"
 [[ -f ~/.bashrc ]] && source ~/.bashrc
 [[ -z $HOME ]] && HOME=~/
 [[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
+[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
 
 # Argumentos/Opções passados na linha de comando.
 OptionList=() 
@@ -90,41 +91,14 @@ elif [[ -x $(command -v curl) ]]; then
 	clientDownloader='curl'
 fi
 
-COLUMNS=$(tput cols)
-RED='\e[0;31m'
-GREEN='\e[0;32m'
-YELLOW='\e[0;33m'
-BLUE='\e[0;34m'
-RESET='\e[m'
-
-function _red() { echo -e "${RED}$@${RESET}"; }
-function _green() { echo -e "${GREEN}$@${RESET}"; }
-function _yellow() { echo -e "${YELLOW}$@${RESET}"; }
-function _blue() { echo -e "${BLUE}$@${RESET}"; }
-
-
-function is_executable()
-{
-	command -v "$@" >/dev/null 2>&1
-}
-
-function print_line()
-{
-	if [[ -z $1 ]]; then
-		char='-'
-	else
-		char="$1"
-	fi
-	printf "%-${COLUMNS}s" | tr ' ' "$char"
-}
 
 function show_logo()
 {
 	clear
 	print_line
-	echo -e "${GREEN}${__appname__[@]:0:1}${RESET}${__appname__[@]:1} V${__version__}"
-	echo -e "${GREEN}G${RESET}ithub $url_shell_pkg_manager"
-	echo -e "${GREEN}A${RESET}utor $__author__"
+	echo -e "${CGreen}${__appname__[@]:0:1}${CReset}${__appname__[@]:1} V${__version__}"
+	echo -e "${CGreen}G${CReset}ithub $url_shell_pkg_manager"
+	echo -e "${CGreen}A${CReset}utor $__author__"
 }
 
 function usage()
@@ -160,7 +134,7 @@ function __rmdir__()
 	# o comando de remoção será com 'sudo'.
 	[[ -z $1 ]] && return 1
 
-	local msg="Deseja ${RED}deletar${RESET} os seguintes arquivos/diretórios? : $@ \n${GREEN}s${RESET}/${RED}N${RESET}: "
+	local msg="Deseja ${CRed}deletar${CReset} os seguintes arquivos/diretórios? : $@ \n${CGreen}s${CReset}/${CRed}N${CReset}: "
 	if [[ "$CONFIRM" != 'True' ]]; then
 		echo -ne "$msg"
 		read -n 1 -t 20 yesno
@@ -178,7 +152,7 @@ function __rmdir__()
 			rm -rf "$1" 2> /dev/null || sudo rm -rf "$1"
 			sleep 0.08
 		else
-			_red "Não encontrado ... $1"
+			red "Não encontrado ... $1"
 		fi
 		shift
 	done
@@ -192,7 +166,7 @@ function __copy_mod__()
 		echo 'OK'
 		return 0
 	else
-		_red "Falha"
+		red "Falha"
 		return 1
 	fi
 }
@@ -200,14 +174,14 @@ function __copy_mod__()
 function _ping()
 {
 	[[ ! -x $(command -v ping) ]] && {
-		_red "(_ping) ERRO ... comando ping não instalado."
+		red "(_ping) ERRO ... comando ping não instalado."
 		return 1
 	}
 
 	if ping -c 2 8.8.8.8 1> /dev/null 2>&1; then
 		return 0
 	else
-		_red "ERRO ... você está off-line"
+		red "ERRO ... você está off-line"
 		return 1
 	fi
 }
@@ -263,14 +237,14 @@ function __download__()
 	fi
 
 	[[ $? == 0 ]] && echo 'OK' && return 0
-	_red '(__download__): ERRO'
+	red '(__download__): ERRO'
 }
 
 function install_modules()
 {
 	# $1 = modulo(s) a serem instalados.
 	print_line
-	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
+	echo -e "${CGreen}I${CReset}nstalando os seguintes módulos/libs:\n"
 	n=0
 	for PKG in "${@}"; do
 		[[ "$n" == 2 ]] && n=0 && echo
@@ -298,7 +272,7 @@ function install_modules()
 					echo -e "export readonly $module=$PATH_BASH_LIBS/${module}.sh" >> ~/.shmrc
 				}
 		else
-			_red "pacote indisponível ... $module"
+			red "pacote indisponível ... $module"
 			sleep 0.25
 		fi
 		shift
@@ -309,7 +283,7 @@ function install_modules()
 function remove_modules()
 {
 	print_line
-	echo -e "${RED}R${RESET}emovendo os seguintes módulos/libs:\n"
+	echo -e "${CRed}R${CReset}emovendo os seguintes módulos/libs:\n"
 	n=0
 	for PKG in "${@}"; do
 		[[ "$n" == 2 ]] && n=0 && echo
@@ -354,7 +328,7 @@ function self_update()
 		exit 1
 	fi
 
-	[[ $? == 0 ]] || { _red 'ERRO'; return 1; }
+	[[ $? == 0 ]] || { red 'ERRO'; return 1; }
 	cp -R -u "$TEMP_SCRIPT" "$DESTINATION_SCRIPT" 1> /dev/null
 	chmod +x "$DESTINATION_SCRIPT"
 
@@ -381,7 +355,7 @@ function info_mod()
 		if grep -q ^"$mod = " "$MODULES_LIST"; then
 			grep ^"$mod = " "$MODULES_LIST"
 		else
-			_red "Módulo indisponível ... $mod"
+			red "Módulo indisponível ... $mod"
 			sleep 0.1
 		fi
 	done
@@ -495,15 +469,18 @@ function main()
 	argument_parse "$@"
 	cd "$dir_of_project"
 
-	# Obter o módulo utils.sh
-	if [[ ! -f ./libs/utils.sh ]] && [[ ! -f "$PATH_BASH_LIBS"/utils.sh ]]; then
-		install_modules utils
-	fi
 
-	# Obter o módulo config_path.sh
-	if [[ ! -f ./libs/config_path.sh ]] && [[ ! -f "$PATH_BASH_LIBS"/config_path.sh ]]; then
-		install_modules config_path
-	fi
+	# Checar/obter módulos/dependências.
+	RequerimentsList=(os requests print_text)
+	REQUERIMENTS='True'
+	for Requeriment in "${RequerimentsList[@]}"; do
+		if [[ ! -f ./libs/"${Requeriment}.sh" ]] && [[ ! -f "$PATH_BASH_LIBS/${Requeriment}.sh" ]]; then
+			REQUERIMENTS='False'
+		fi
+	done
+
+	# Instalar dependências se for necessário.
+	[[ "$REQUERIMENTS" == 'False' ]] && install_modules "${RequerimentsList[@]}"
 
 	while [[ $1 ]]; do
 		case "$1" in
