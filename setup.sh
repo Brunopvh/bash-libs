@@ -20,6 +20,7 @@ fi
 DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
 URL_SCRIPT='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 TEMP_SCRIPT=$(mktemp)
+rm -rf "$TEMP_SCRIPT"
 
 printf "Aguarde ... "
 if [[ -x $(command -v aria2c) ]]; then
