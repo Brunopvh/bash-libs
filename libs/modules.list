@@ -1,8 +1,10 @@
 config_path = Insere ~/.local/bin no PATH do usuário sempre que fizer login
+crypto = funções para facilitar o uso do gpg em scripts.
+files_programs = Guarda o destino de instalação de pacotes, e arquivos de programas para o root e para o usuário.
 os = Várias funções para realizar operações  no sistema.
 platform = Cria variáveis com informações sobre o sistema.
 pkgmanager = Utilitários para Gdebi-cli apt e dpkg.
 print_text = Imprimir texto com formatação e cores.
 requests = Baixar arquivos da web, filtra texto em páginas html e mais.
 utils = várias funcões para shell, loop processos e mais
-crypto = funções para facilitar o uso do gpg em scripts.
+

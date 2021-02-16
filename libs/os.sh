@@ -29,14 +29,20 @@ if [[ $(id -u) == 0 ]]; then
 	export readonly DIR_BIN='/usr/local/bin'
 	export readonly DIR_LIB='/usr/local/lib'
 	export readonly DIR_OPTIONAL='/opt'
+	export readonly DIR_SHARE='/usr/share'
+	export readonly DIR_THEMES='/usr/share/themes'
 	export readonly DIR_APPLICATIONS='/usr/share/applications'
-	export readonly DIR_ICONS='/usr/share/icons/hicolor'
+	export readonly DIR_ICONS='/usr/share/icons/hicolor/256x256/apps'
+	export readonly DIR_HICOLOR='/usr/share/icons/hicolor'
 else
 	export readonly DIR_BIN=~/.local/bin
 	export readonly DIR_LIB=~/.local/lib
+	export readonly DIR_SHARE=~/.local/share
+	export readonly DIR_THEMES=~/.themes
 	export readonly DIR_OPTIONAL=~/.local/share
 	export readonly DIR_APPLICATIONS=~/.local/share/applications
 	export readonly DIR_ICONS=~/.local/share/icons
+	export readonly DIR_HICOLOR=~/.icons
 fi
 
 kernel_type=$(uname -s)

@@ -266,7 +266,7 @@ function __download__()
 	_red '(__download__): ERRO'
 }
 
-function install_modules()
+function install_modules_old()
 {
 	# $1 = modulo(s) a serem instalados.
 	print_line
@@ -343,6 +343,47 @@ function install_modules()
 			sleep 0.1
 		fi
 
+		shift
+	done
+	echo -e "Feito!"
+}
+
+
+function install_modules()
+{
+	# $1 = modulo(s) a serem instalados.
+	print_line
+	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
+	n=0
+	for PKG in "${@}"; do
+		[[ "$n" == 2 ]] && n=0 && echo
+		printf "%-20s" "$PKG "
+		n="$(($n + 1))"
+	done
+	echo
+	
+	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
+
+	cd "$temp_dir"
+	echo -ne "Descompactando ... $FILE_LIBS_TAR "
+	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
+	echo 'OK'
+	cd "$temp_dir"/bash-libs-main || return 1
+	cd libs
+	
+	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
+
+	while [[ $1 ]]; do
+		local module="$1"
+		if [[ -f "${module}.sh" ]]; then
+			__copy_mod__ "${module}.sh" "$PATH_BASH_LIBS/${module}.sh" || { return 1; break; }
+			grep -q ^"export readonly $module=$PATH_BASH_LIBS/${module}.sh" ~/.shmrc || {
+					echo -e "export readonly $module=$PATH_BASH_LIBS/${module}.sh" >> ~/.shmrc
+				}
+		else
+			_red "pacote indisponível ... $module"
+			sleep 0.25
+		fi
 		shift
 	done
 	echo -e "Feito!"
