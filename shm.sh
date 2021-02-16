@@ -372,26 +372,42 @@ function self_shasum()
 
 function self_update()
 {
-	# Baixar e instalar a ultima versão deste script disponível no github.
-	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/setup.sh'
-	local temp_file_update=$(mktemp)
-	rm -rf "$temp_file_update"
-	clientDownloader='curl'
-	_ping || return 1
-	echo -e "Atualizando script shm..."
-	case "$clientDownloader" in
-		curl) 
-			sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
-			;;
-		wget) 
-			sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
-			;;
-		aria2c) 
-			aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null
-			chmod +x "$temp_file_update"
-			"$temp_file_update"
-			;;
-	esac
+	if [[ $(id -u) == 0 ]]; then
+		DESTINATION_DIR='/usr/local/bin'
+	else
+		DESTINATION_DIR=~/.local/bin
+	fi
+
+	[[ ! -d $DESTINATION_DIR ]] && mkdir $DESTINATION_DIR
+
+	DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
+	URL_SCRIPT='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+	TEMP_SCRIPT=$(mktemp)
+
+	printf "Aguarde ... "
+	if [[ "$clientDownloader" == 'aria2c' ]]; then
+		aria2c "$URL_SCRIPT" -d $(dirname "$TEMP_SCRIPT") -o $(basename "$TEMP_SCRIPT") 1> /dev/null
+	elif [[ "$clientDownloader" == 'wget' ]]; then
+		wget -q -O "$TEMP_SCRIPT" "$URL_SCRIPT"
+	elif [[ "$clientDownloader" == 'curl' ]]; then
+		curl -fsSL -o "$TEMP_SCRIPT" "$URL_SCRIPT"
+	else
+		printf "Instale o curl ou wget para prosseguir.\n"
+		exit 1
+	fi
+
+	cp -R -u -v "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
+	chmod +x "$DESTINATION_SCRIPT"
+
+	if [[ -x "$DESTINATION_SCRIPT" ]]; then
+		printf "OK\n"
+		echo -e "Execute  ... $DESTINATION_SCRIPT --configure"
+	else
+		printf "Falha"
+		exit 1
+	fi
+
+	rm -rf "$TEMP_SCRIPT"
 }
 
 function self_install()

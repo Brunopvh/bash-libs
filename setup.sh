@@ -24,17 +24,18 @@ TEMP_SCRIPT=$(mktemp)
 printf "Aguarde ... "
 if [[ -x $(command -v aria2c) ]]; then
 	aria2c "$URL_SCRIPT" -d $(dirname "$TEMP_SCRIPT") -o $(basename "$TEMP_SCRIPT") 1> /dev/null
-	cp -R -u "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
 elif [[ -x $(command -v wget) ]]; then
-	wget -q -O "$DESTINATION_SCRIPT" "$URL_SCRIPT"
+	wget -q -O "$TEMP_SCRIPT" "$URL_SCRIPT"
 elif [[ -x $(command -v curl) ]]; then
-	curl -fsSL -o "$DESTINATION_SCRIPT" "$URL_SCRIPT"
+	curl -fsSL -o "$TEMP_SCRIPT" "$URL_SCRIPT"
 else
 	printf "Instale o curl ou wget para prosseguir.\n"
 	exit 1
 fi
 
+cp -R -u -v "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
 chmod +x "$DESTINATION_SCRIPT"
+
 if [[ -x "$DESTINATION_SCRIPT" ]]; then
 	printf "OK\n"
 	echo -e "Execute  ... $DESTINATION_SCRIPT --configure"
