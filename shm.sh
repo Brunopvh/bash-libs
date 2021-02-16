@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-15'
+readonly __version__='2021-02-16'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -266,89 +266,6 @@ function __download__()
 	_red '(__download__): ERRO'
 }
 
-function install_modules_old()
-{
-	# $1 = modulo(s) a serem instalados.
-	print_line
-	echo -e "${GREEN}I${RESET}nstalando os seguintes módulos/libs:\n"
-	n=0
-	for PKG in "${@}"; do
-		[[ "$n" == 2 ]] && n=0 && echo
-		printf "%-20s" "$PKG "
-		n="$(($n + 1))"
-	done
-	echo
-	
-	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
-
-	cd "$temp_dir"
-	echo -ne "Descompactando ... $FILE_LIBS_TAR "
-	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
-	echo 'OK'
-	cd "$temp_dir"/bash-libs-main || return 1
-	cd libs
-	
-	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
-
-	while [[ $1 ]]; do
-		if [[ "$1" == 'print_text' ]]; then
-			__copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly print_text=$PATH_BASH_LIBS/print_text.sh" ~/.shmrc || {
-					echo -e "export readonly print_text=$PATH_BASH_LIBS/print_text.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'config_path' ]]; then
-			__copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly config_path=$PATH_BASH_LIBS/config_path.sh" ~/.shmrc || {
-					echo -e "export readonly config_path=$PATH_BASH_LIBS/config_path.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'crypto' ]]; then
-			 __copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly crypto=$PATH_BASH_LIBS/crypto.sh" ~/.shmrc || {
-					echo -e "export readonly crypto=$PATH_BASH_LIBS/crypto.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'os' ]]; then 
-			__copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly os=$PATH_BASH_LIBS/os.sh" ~/.shmrc || {
-					echo -e "export readonly os=$PATH_BASH_LIBS/os.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'platform' ]]; then 
-			__copy_mod__ platform.sh "$PATH_BASH_LIBS"/platform.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly platform=$PATH_BASH_LIBS/platform.sh" ~/.shmrc || {
-					echo -e "export readonly platform=$PATH_BASH_LIBS/platform.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'pkgmanager' ]]; then
-			__copy_mod__ pkgmanager.sh "$PATH_BASH_LIBS"/pkgmanager.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly pkgmanager=$PATH_BASH_LIBS/pkgmanager.sh" ~/.shmrc || {
-					echo -e "export readonly pkgmanager=$PATH_BASH_LIBS/pkgmanager.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'requests' ]]; then
-			__copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly requests=$PATH_BASH_LIBS/requests.sh" ~/.shmrc || {
-					echo -e "export readonly requests=$PATH_BASH_LIBS/requests.sh" >> ~/.shmrc
-				}
-
-		elif [[ "$1" == 'utils' ]]; then
-			__copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh || { sred 'ERRO'; return 1; break; }
-			grep -q ^"export readonly utils=$PATH_BASH_LIBS/utils.sh" ~/.shmrc || {
-					echo -e "export readonly utils=$PATH_BASH_LIBS/utils.sh" >> ~/.shmrc
-				}
-		else
-			_red "pacote indisponivel ... $PKG"
-			sleep 0.1
-		fi
-
-		shift
-	done
-	echo -e "Feito!"
-}
-
-
 function install_modules()
 {
 	# $1 = modulo(s) a serem instalados.
@@ -423,8 +340,7 @@ function self_update()
 
 	DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
 	URL_SCRIPT='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
-	TEMP_SCRIPT=$(mktemp)
-	rm -rf "$TEMP_SCRIPT"
+	TEMP_SCRIPT=$(mktemp -u)
 
 	printf "Aguarde ... "
 	if [[ "$clientDownloader" == 'aria2c' ]]; then
@@ -438,11 +354,12 @@ function self_update()
 		exit 1
 	fi
 
+	[[ $? == 0 ]] || { _red 'ERRO'; return 1; }
 	cp -R -u "$TEMP_SCRIPT" "$DESTINATION_SCRIPT" 1> /dev/null
 	chmod +x "$DESTINATION_SCRIPT"
 
 	if [[ -x "$DESTINATION_SCRIPT" ]]; then
-		printf "OK\n"
+		echo -e "OK versão ... $(shm -v) instalada com sucesso."
 		echo -e "Execute  ... $DESTINATION_SCRIPT --configure"
 	else
 		printf "Falha"
