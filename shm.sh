@@ -397,7 +397,7 @@ function self_update()
 		exit 1
 	fi
 
-	cp -R -u -v "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
+	cp -R -u "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
 	chmod +x "$DESTINATION_SCRIPT"
 
 	if [[ -x "$DESTINATION_SCRIPT" ]]; then
