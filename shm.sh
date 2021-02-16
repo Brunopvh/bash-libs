@@ -373,39 +373,25 @@ function self_shasum()
 function self_update()
 {
 	# Baixar e instalar a ultima versão deste script disponível no github.
-	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+	local url_shm_main='https://raw.github.com/Brunopvh/bash-libs/main/setup.sh'
 	local temp_file_update=$(mktemp)
-
-	# Importar o módulo utils se ainda não estiver importado.
-	cd "$dir_of_project"
-	[[ -z $lib_utils ]] && {
-		if [[ -f ./libs/utils.sh ]]; then
-			source ./libs/utils.sh
-		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
-			source "$PATH_BASH_LIBS/utils.sh"
-		else
-			echo -e "(self_update) ERRO ... módulo utils.sh não encontrado."]
-			return 1
-		fi
-	}
-	
+	rm -rf "$temp_file_update"
+	clientDownloader='curl'
 	_ping || return 1
+	echo -e "Atualizando script shm..."
 	case "$clientDownloader" in
-		curl) curl -fsSL "$url_shm_main" -o "$temp_file_update" &;;
-		wget) wget -q "$url_shm_main" -O "$temp_file_update" &;;
-		aria2c) aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
+		curl) 
+			sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
+			;;
+		wget) 
+			sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
+			;;
+		aria2c) 
+			aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null
+			chmod +x "$temp_file_update"
+			"$temp_file_update"
+			;;
 	esac
-	loop_pid "$!" "Baixando atualização aguarde..."
-	cp "$temp_file_update" "$DIR_BIN"/shm
-	chmod +x "$DIR_BIN"/shm
-	
-	if [[ -x $(command -v shm) ]]; then
-		echo "Atualização instalada com sucesso."
-		return 0
-	else
-		_red "ERRO"
-		return 1
-	fi
 }
 
 function self_install()

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #
+version='2021-02-15'
 # Script para automatizar a instalação do gerenciador shm(Shell Package Manager).
 #
 # INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
@@ -18,9 +19,13 @@ fi
 
 DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
 URL_SCRIPT='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+TEMP_SCRIPT=$(mktemp)
 
 printf "Aguarde ... "
-if [[ -x $(command -v wget) ]]; then
+if [[ -x $(command -v aria2c) ]]; then
+	aria2c "$URL_SCRIPT" -d $(dirname "$TEMP_SCRIPT") -o $(basename "$TEMP_SCRIPT") 1> /dev/null
+	cp -R -u "$TEMP_SCRIPT" "$DESTINATION_SCRIPT"
+elif [[ -x $(command -v wget) ]]; then
 	wget -q -O "$DESTINATION_SCRIPT" "$URL_SCRIPT"
 elif [[ -x $(command -v curl) ]]; then
 	curl -fsSL -o "$DESTINATION_SCRIPT" "$URL_SCRIPT"
@@ -38,4 +43,5 @@ else
 	exit 1
 fi
 
+rm -rf "$TEMP_SCRIPT"
 exit 0
