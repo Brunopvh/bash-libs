@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_requests='2021-02-13'
+version_requests='2021-02-15'
 #
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
@@ -48,16 +48,15 @@ fi
 export lib_requests='True'
 
 # Verificar gerenciador de downloads.
+if [[ -x $(command -v aria2c) ]]; then
+	export clientDownloader='aria2c'
 if [[ -x $(command -v wget) ]]; then
-	export Downloader='wget'
-elif [[ -x $(command -v aria2c) ]]; then
-	export Downloader='aria2c'
+	export clientDownloader='wget'
 elif [[ -x $(command -v curl) ]]; then
-	export Downloader='curl'
+	export clientDownloader='curl'
 else
-	export Downloader='None'
+	export clientDownloader='None'
 fi
-
 
 function __ping__()
 {
@@ -95,7 +94,7 @@ function download()
 	local url="$1"
 	local path_file="$2"
 
-	if [[ "$Downloader" == 'None' ]]; then
+	if [[ "$clientDownloader" == 'None' ]]; then
 		red "(download): Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
@@ -104,7 +103,7 @@ function download()
 	__ping__ || return 1
 	echo -e "Conectando $url"
 	if [[ ! -z $path_file ]]; then
-		case "$Downloader" in 
+		case "$clientDownloader" in 
 			aria2c) 
 					aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 
 					;;
@@ -116,7 +115,7 @@ function download()
 					;;
 		esac
 	else
-		case "$Downloader" in 
+		case "$clientDownloader" in 
 			aria2c) 
 					aria2c -c "$url"
 					;;

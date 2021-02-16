@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-14'
+readonly __version__='2021-02-15'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -82,12 +82,12 @@ OptionList=()
 PkgsList=()
 
 # Verificar gerenciador de downloads.
-if [[ -x $(command -v wget) ]]; then
-	Downloader='wget'
-elif [[ -x $(command -v aria2c) ]]; then
-	Downloader='aria2c'
+if [[ -x $(command -v aria2c) ]]; then
+	clientDownloader='aria2c'
+elif [[ -x $(command -v wget) ]]; then
+	clientDownloader='wget'
 elif [[ -x $(command -v curl) ]]; then
-	Downloader='curl'
+	clientDownloader='curl'
 fi
 
 COLUMNS=$(tput cols)
@@ -229,15 +229,15 @@ function __download__()
 	local path_file="$2"
 	_ping || return 1
 
-	if [[ -z $Downloader ]]; then
+	if [[ -z $clientDownloader ]]; then
 		red "(download): Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
 	fi
 
-	echo -ne "Conectando aguarde ... "
+	echo -ne "Conectando $url aguarde ... "
 	if [[ ! -z $path_file ]]; then
-		case "$Downloader" in 
+		case "$clientDownloader" in 
 			aria2c) 
 					aria2c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 1> /dev/null
 					;;
@@ -249,7 +249,7 @@ function __download__()
 					;;
 		esac
 	else
-		case "$Downloader" in 
+		case "$clientDownloader" in 
 			aria2c) 
 					aria2c "$url"
 					;;
@@ -291,17 +291,58 @@ function install_modules()
 	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
 
 	while [[ $1 ]]; do
-		case "$1" in
-			print_text) __copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh;;
-			config_path) __copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh;;
-			crypto) __copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh;;
-			os) __copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh;;
-			platform) __copy_mod__ platform.sh "$PATH_BASH_LIBS"/platform.sh;;
-			pkgmanager) __copy_mod__ pkgmanager.sh "$PATH_BASH_LIBS"/pkgmanager.sh;;
-			requests) __copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh;;
-			utils) __copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh;;
-			*) _red "pacote indisponivel ... $PKG"; sleep 0.1;;
-		esac
+		if [[ "$1" == 'print_text' ]]; then
+			__copy_mod__ print_text.sh "$PATH_BASH_LIBS"/print_text.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly print_text=$PATH_BASH_LIBS/print_text.sh" ~/.shmrc || {
+					echo -e "export readonly print_text=$PATH_BASH_LIBS/print_text.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'config_path' ]]; then
+			__copy_mod__ config_path.sh "$PATH_BASH_LIBS"/config_path.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly config_path=$PATH_BASH_LIBS/config_path.sh" ~/.shmrc || {
+					echo -e "export readonly config_path=$PATH_BASH_LIBS/config_path.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'crypto' ]]; then
+			 __copy_mod__ crypto.sh "$PATH_BASH_LIBS"/crypto.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly crypto=$PATH_BASH_LIBS/crypto.sh" ~/.shmrc || {
+					echo -e "export readonly crypto=$PATH_BASH_LIBS/crypto.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'os' ]]; then 
+			__copy_mod__ os.sh "$PATH_BASH_LIBS"/os.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly os=$PATH_BASH_LIBS/os.sh" ~/.shmrc || {
+					echo -e "export readonly os=$PATH_BASH_LIBS/os.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'platform' ]]; then 
+			__copy_mod__ platform.sh "$PATH_BASH_LIBS"/platform.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly platform=$PATH_BASH_LIBS/platform.sh" ~/.shmrc || {
+					echo -e "export readonly platform=$PATH_BASH_LIBS/platform.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'pkgmanager' ]]; then
+			__copy_mod__ pkgmanager.sh "$PATH_BASH_LIBS"/pkgmanager.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly pkgmanager=$PATH_BASH_LIBS/pkgmanager.sh" ~/.shmrc || {
+					echo -e "export readonly pkgmanager=$PATH_BASH_LIBS/pkgmanager.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'requests' ]]; then
+			__copy_mod__ requests.sh "$PATH_BASH_LIBS"/requests.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly requests=$PATH_BASH_LIBS/requests.sh" ~/.shmrc || {
+					echo -e "export readonly requests=$PATH_BASH_LIBS/requests.sh" >> ~/.shmrc
+				}
+
+		elif [[ "$1" == 'utils' ]]; then
+			__copy_mod__ utils.sh "$PATH_BASH_LIBS"/utils.sh || { sred 'ERRO'; return 1; break; }
+			grep -q ^"export readonly utils=$PATH_BASH_LIBS/utils.sh" ~/.shmrc || {
+					echo -e "export readonly utils=$PATH_BASH_LIBS/utils.sh" >> ~/.shmrc
+				}
+		else
+			_red "pacote indisponivel ... $PKG"
+			sleep 0.1
+		fi
+
 		shift
 	done
 	echo -e "Feito!"
@@ -349,7 +390,7 @@ function self_update()
 	}
 	
 	_ping || return 1
-	case "$Downloader" in
+	case "$clientDownloader" in
 		curl) curl -fsSL "$url_shm_main" -o "$temp_file_update" &;;
 		wget) wget -q "$url_shm_main" -O "$temp_file_update" &;;
 		aria2c) aria2c "$url_shm_main" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
@@ -416,7 +457,7 @@ function update_modules_list()
 	}
 	
 	_ping || return 1
-	case "$Downloader" in
+	case "$clientDownloader" in
 		curl) curl -fsSL "$URL_MODULES_LIST" -o "$temp_file_update" &;;
 		wget) wget -q "$URL_MODULES_LIST" -O "$temp_file_update" &;;
 		aria2c) aria2c "$URL_MODULES_LIST" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
@@ -445,9 +486,11 @@ function _configure()
 	config_zshrc
 
 	touch ~/.shmrc
-	sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
-	# grep -q -m 1 "export PATH_BASH_LIBS=" ~/.shmrc && return 0
-	echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> $FILE_CONFIG
+	grep -q ^"export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" ~/.shmrc || {
+		echo -e "export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
+	}
+
+	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
 }
 
 function argument_parse()
