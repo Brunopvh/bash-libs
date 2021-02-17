@@ -71,10 +71,18 @@ fi
 readonly FILE_CONFIG=~/.shmrc
 readonly MODULES_LIST="$DIR_CONFIG/modules.list"
 
-[[ -f ~/.bashrc ]] && source ~/.bashrc
+[[ -f ~/.bashrc ]] && source ~/.bashrc 
+[[ -f ~/.shmrc ]] && source ~/.shmrc 2> /dev/null
 [[ -z $HOME ]] && HOME=~/
 [[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
 [[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
+
+# Importar módulos.
+RequerimentsList=(os utils requests print_text)
+for module in "${RequerimentsList[@]}"; do
+	echo -e "importando ... $PATH_BASH_LIBS/${module}.sh"
+	source "$PATH_BASH_LIBS/${module}.sh" 2> /dev/null
+done
 
 # Argumentos/Opções passados na linha de comando.
 OptionList=() 
@@ -467,20 +475,6 @@ function argument_parse()
 function main()
 {
 	argument_parse "$@"
-	cd "$dir_of_project"
-
-
-	# Checar/obter módulos/dependências.
-	RequerimentsList=(os requests print_text)
-	REQUERIMENTS='True'
-	for Requeriment in "${RequerimentsList[@]}"; do
-		if [[ ! -f ./libs/"${Requeriment}.sh" ]] && [[ ! -f "$PATH_BASH_LIBS/${Requeriment}.sh" ]]; then
-			REQUERIMENTS='False'
-		fi
-	done
-
-	# Instalar dependências se for necessário.
-	[[ "$REQUERIMENTS" == 'False' ]] && install_modules "${RequerimentsList[@]}"
 
 	while [[ $1 ]]; do
 		case "$1" in
