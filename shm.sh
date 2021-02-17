@@ -80,8 +80,12 @@ readonly MODULES_LIST="$DIR_CONFIG/modules.list"
 # Importar módulos.
 RequerimentsList=(os utils requests print_text)
 for module in "${RequerimentsList[@]}"; do
-	echo -e "importando ... $PATH_BASH_LIBS/${module}.sh"
-	source "$PATH_BASH_LIBS/${module}.sh" 2> /dev/null
+	source "$PATH_BASH_LIBS/${module}.sh" 2> /dev/null || {
+		echo -e "shm ERRO: módulo não encontrado ${module}.sh"
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		exit 1
+		break
+	}
 done
 
 # Argumentos/Opções passados na linha de comando.
