@@ -46,24 +46,23 @@
 #
 #
 
-readonly __version__='2021-02-16'
+readonly __version__='2021-02-20'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
-#readonly _shasum_script='e631840fa16cca6b4ba0e46f7bc180bc1bfd03ea462f12987de48a659a05c1ab'
 readonly dir_of_project=$(dirname "$__script__")
-readonly temp_dir=$(mktemp --directory); mkdir -p "$temp_dir"
-readonly FILE_LIBS_TAR="$temp_dir/bash-libs.tar.gz"
+readonly TEMPORARY_DIR=$(mktemp --directory); mkdir -p "$TEMPORARY_DIR"
+readonly FILE_LIBS_TAR="$TEMPORARY_DIR/bash-libs.tar.gz"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly URL_MODULES_LIST='https://raw.github.com/Brunopvh/bash-libs/main/libs/modules.list'
 readonly url_shell_pkg_manager='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 
 if [[ $(id -u) == 0 ]]; then
-	readonly PATH_BASH_LIBS='/usr/local/lib/bash'
+	readonly PREFIX='/usr/local/lib'
 	readonly DIR_BIN='/usr/local/bin'
 	readonly DIR_CONFIG="/etc/${__appname__}"
 else
-	readonly PATH_BASH_LIBS=~/.local/lib/bash
+	readonly PREFIX=~/.local/lib
 	readonly DIR_BIN=~/.local/bin
 	readonly DIR_CONFIG=~/".config/${__appname__}"
 fi
@@ -74,27 +73,11 @@ readonly MODULES_LIST="$DIR_CONFIG/modules.list"
 [[ -f ~/.bashrc ]] && source ~/.bashrc 
 [[ -f ~/.shmrc ]] && source ~/.shmrc 2> /dev/null
 [[ -z $HOME ]] && HOME=~/
+[[ -z $PATH_BASH_LIBS ]] && PATH_BASH_LIBS="$PREFIX"/bash
 [[ ! -d $DIR_CONFIG ]] && mkdir $DIR_CONFIG
 [[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
 
-# Importar módulos.
-RequerimentsList=(os utils requests print_text)
-for module in "${RequerimentsList[@]}"; do
-	source "$PATH_BASH_LIBS/${module}.sh" 2> /dev/null || {
-		echo -e "shm ERRO: módulo não encontrado ${module}.sh"
-		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-		exit 1
-		break
-	}
-done
-
-# Argumentos/Opções passados na linha de comando.
-OptionList=() 
-
-# Lista de pacotes a serem instalados.
-PkgsList=()
-
-# Verificar gerenciador de downloads.
+# Verificar gerenciador de downloads instalado no sistema.
 if [[ -x $(command -v aria2c) ]]; then
 	clientDownloader='aria2c'
 elif [[ -x $(command -v wget) ]]; then
@@ -103,6 +86,47 @@ elif [[ -x $(command -v curl) ]]; then
 	clientDownloader='curl'
 fi
 
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	echo 'OU'
+	echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	read -p 'Pressione enter para continuar... ' -t 5 Input
+	echo
+}
+
+# Importar módulos externos necessários para a execução deste script.
+# print_text
+source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
+	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+# os
+source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
+	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+# utils
+source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
+	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+# requests
+source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
+	show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+
+# Argumentos/Opções passados na linha de comando.
+OptionList=() 
+
+# Lista de pacotes a serem instalados.
+PkgsList=()
 
 function show_logo()
 {
@@ -122,6 +146,7 @@ cat << EOF
 
       -c|--configure    Configura este script e suas configurações no sistema.
       -u|--self-update  Instala a ultima versão(online) deste script disponível no github.
+      -U|--upgrade      Instala a ultima versão (online - github) de um módulo.
 
       -i|--install (módulo)  Instalar um ou mais módulo(s) no sistema.
       -r|--remove (módulo)   Remove um ou mais módulos do seu sistema.
@@ -267,17 +292,24 @@ function install_modules()
 	
 	__download__ "$URL_REPO_LIBS_MASTER" "$FILE_LIBS_TAR" || return 1
 
-	cd "$temp_dir"
+	cd "$TEMPORARY_DIR"
 	echo -ne "Descompactando ... $FILE_LIBS_TAR "
-	tar -zxvf "$FILE_LIBS_TAR" -C "$temp_dir" 1> /dev/null || return 1
+	tar -zxvf "$FILE_LIBS_TAR" -C "$TEMPORARY_DIR" 1> /dev/null || return 1
 	echo 'OK'
-	cd "$temp_dir"/bash-libs-main || return 1
+	cd "$TEMPORARY_DIR"/bash-libs-main || return 1
 	cd libs
-	
-	[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
 
 	while [[ $1 ]]; do
 		local module="$1"
+		if [[ -f "$PATH_BASH_LIBS/${module}.sh" ]] && [[ "$Upgrade" == 'True' ]]; then
+			echo -ne "Atualizando módulo ... $module ... "
+		elif [[ -f "$PATH_BASH_LIBS/${module}.sh" ]]; then
+			echo -e "Módulo já instalado ... $module"
+			shift
+			continue
+		fi
+		
+
 		if [[ -f "${module}.sh" ]]; then
 			__copy_mod__ "${module}.sh" "$PATH_BASH_LIBS/${module}.sh" || { return 1; break; }
 			grep -q ^"export readonly $module=$PATH_BASH_LIBS/${module}.sh" ~/.shmrc || {
@@ -470,6 +502,8 @@ function argument_parse()
 					num="$(($num + 1))"
 				fi
 			done
+		elif [[ "$OPT" == '--upgrade' ]] || [[ "$OPT" == '-U' ]]; then
+			export Upgrade='True'
 		fi
 
 		num="$(($num + 1))"
@@ -509,4 +543,4 @@ else
 	_configure  # Executa configuração inicial. Ver o arquivo ~/.shmrc 
 fi
 
-rm -rf "$temp_dir" 1> /dev/null 2>&1
+rm -rf "$TEMPORARY_DIR" 1> /dev/null 2>&1

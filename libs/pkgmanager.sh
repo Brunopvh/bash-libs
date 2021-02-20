@@ -120,21 +120,21 @@ _APT()
 	fi
 }
 
-_apt_key_add()
+apt_key_add()
 {
 	is_admin || return 1
 
 	if [[ -f "$1" ]]; then
-		printf "(_apt_key_add) Adicionando key apartir do arquivo ... $1 "
+		printf "(apt_key_add) Adicionando key apartir do arquivo ... $1 "
 		sudo apt-key add "$1" || return 1
 	else 
 		if ! echo "$1" | egrep '(http:|ftp:|https:)' | grep -q '/'; then
-			red "(_apt_key_add): url inválida $1"
+			red "(apt_key_add): url inválida $1"
 			return 1
 		fi
 
 		# Obter key apartir do url $1.
-		local TEMP_FILE_KEY="$(mktemp)-tmp.key"
+		local TEMP_FILE_KEY=$(mktemp -u) # Não cria o arquivo.
 
 		printf "Adicionando key apartir do url ... $1 "
 		download "$1" "$TEMP_FILE_KEY" 1> /dev/null || return 1
@@ -142,15 +142,16 @@ _apt_key_add()
 		# Adicionar key
 		if [[ $? == 0 ]]; then
 			sudo apt-key add "$TEMP_FILE_KEY" || return 1
-			return 0
 		else
-			red "ERRO"
+			print_erro ""
 			return 1
 		fi
+		rm -rf "$TEMP_FILE_KEY"
+		return 0
 	fi
 }
 
-_addrepo_in_sources_list()
+add_repo_apt()
 {
 	# $1 = repositório para adicionar em /etc/apt/sources.list.d/
 	# Se o repositório já existir em outro arquivo a adição do repositório
@@ -162,18 +163,18 @@ _addrepo_in_sources_list()
 	# IMPORTANTE antes de adicionar os repositório, e necessário adicionar key.pub 
 	# para cada repositório, para evitar problemas quando atualizar o cache do apt (sudo apt update)
 	if [[ -z $2 ]]; then
-		sred "(_addrepo_in_sources_list): informe um arquivo para adicionar o repositório"
+		sred "(add_repo_apt): informe um arquivo para adicionar o repositório"
 		return 1
 	fi
 
 	local repo="$1"
 	local file_repo="$2"
+
 	find /etc/apt -name *.list | xargs grep "^${repo}" 2> /dev/null
 	if [[ $? == 0 ]] || [[ -f "$file_repo" ]]; then
-		printf "${CGreen}INFO${CReset} ... repositório já existe em /etc/apt pulando.\n"
-		return 0
+		print_info "o repositório já existe em /etc/apt pulando."
 	else
-		printf "${CGreen}A${CReset}dicionando repositório em ... $file_repo\n"
+		print_info "Adicionando repositório em ... $file_repo"
 		echo -e "$repo" | sudo tee "$file_repo"
 		_APT update || return 1
 	fi
@@ -242,7 +243,7 @@ _rpm_key_add()
 		sudo rpm --import "$1" || return 1
 	else 
 		if ! echo "$1" | egrep '(http:|ftp:|https:)' | grep -q '/'; then
-			red "(_apt_key_add): url inválida $1"
+			red "(apt_key_add): url inválida $1"
 			return 1
 		fi
 

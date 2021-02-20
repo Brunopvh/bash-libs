@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version='2021-02-16'
+version='2021-02-20'
 # Script para automatizar a instalação do gerenciador shm(Shell Package Manager).
 #
 # INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
@@ -90,6 +90,7 @@ function offline_setup()
 	cp ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
 	cp ./libs/utils.sh "$PATH_BASH_LIBS"/utils.sh 1> /dev/null
 	cp ./libs/print_text.sh "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null
+	cp ./libs/config_path.sh "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null
 	cp shm.sh "$DESTINATION_SCRIPT" 1> /dev/null
 	chmod +x "$DESTINATION_SCRIPT"
 	echo 'OK'

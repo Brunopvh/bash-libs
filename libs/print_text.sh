@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_print_text='2021-02-13'
+version_print_text='2021-02-20'
 lib_print_text='True'
 
 #=============================================================#
@@ -88,6 +88,20 @@ print_line()
 	fi
 }
 
+print_erro()
+{
+	if [[ -z $1 ]]; then
+		echo -e "${CRed}ERRO${CReset}"
+	else
+		echo -e "${CRed}ERRO:${CReset} $@"
+	fi
+}
+
+print_info()
+{
+	echo -e "${CGreen}INFO ... ${CReset}$@"
+}
+
 msg()
 {
 	print_line
@@ -125,7 +139,7 @@ sred()
 	echo -e "${CSRed}$@${CReset}"
 }
 
-_sgreen()
+sgreen()
 {
 	echo -e "${CSGreen}$@${CReset}"
 }
