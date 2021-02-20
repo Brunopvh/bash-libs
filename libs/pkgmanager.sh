@@ -1,47 +1,54 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-02-14'
+version_pkgmanager='2021-02-20'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
-# - REQUERIMENT = awk
+# - REQUERIMENT = os
+# - REQUERIMENT = requests
+# - CLI_REQUERIMENT = awk
 # 
 #
 #
 
-[[ $PATH_BASH_LIBS ]] && source ~/.shmrc 2> /dev/null
+[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
-# os
-if [[ "$lib_os" != 'True' ]]; then
-	source "$os" 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar os.sh"
-		exit 1
-	}
-fi
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	echo 'OU'
+	echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	read -p 'Pressione enter para continuar... ' -t 5 Input
+	echo
+}
 
 # print_text
-if [[ "$lib_print_text" != 'True' ]]; then
-	source "$print_text" 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar print_text.sh"
-		exit 1
-	}
-fi
+source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
+	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+# os
+source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
+	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
 
 # utils
-if [[ "$lib_utils" != 'True' ]]; then
-	source "$utils" 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar utils.sh"
-		exit 1
-	}
-fi
+source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
+	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
 
 # requests
-if [[ "$lib_requests" != 'True' ]]; then
-	source "$requests" 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar requests.sh"
-		exit 1
-	}
-fi
+source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
+	show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+#=============================================================#
+
 
 export lib_pkgmanager='True'
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 
+export version_platform='20201-02-20'
 export KERNEL_TYPE=$(uname -s)
 export OS_ARCH='None'
 export OS_ID='None'
@@ -10,8 +11,11 @@ export VERSION_CODENAME='None'
 
 if uname -m | grep -q "64$"; then
 	OS_ARCH='x86_64'
-else
+elif uname -m | grep -q "86$"; then
 	OS_ARCH='i386'
+else
+	OS_ARCH='None'
+	echo "(platform) ERRO: OS_ARCH não dectectado."
 fi
 
 
@@ -20,7 +24,7 @@ if [[ -f '/usr/local/etc/os-release' ]]; then
 elif [[ -f '/etc/os-release' ]]; then
 	file_release='/etc/os-release'
 else
-	echo "(platform):ERRO arquivo os-release não encontrado"
+	echo "(platform) ERRO: arquivo os-release não encontrado"
 	sleep 1
 	exit 1
 fi
@@ -45,9 +49,21 @@ if [[ "$file_release" ]]; then
 	OS_RELEASE=$(grep -m 1 '^VERSION=' "$file_release" | sed 's/.*VERSION=//g;s/\"//g;s/(//g;s/)//g;s/ //g')
 fi
 
-
 # Codename
 if [[ "$file_release" ]] && [[ $(grep '^VERSION_CODENAME=' "$file_release") ]]; then
 	VERSION_CODENAME=$(grep -m 1 '^VERSION_CODENAME=' "$file_release" | sed 's/.*VERSION_CODENAME=//g')
 fi
+
+function show_platform_info()
+{
+	# Exibir informações básicas dos sitema operacional no stdout
+	printf "%-20s%-10s\n" "OS_ID" "$OS_ID"
+	printf "%-20s%-10s\n" "VERSION_ID" "$VERSION_ID"
+	printf "%-20s%-10s\n" "VERSION_CODENAME" "$VERSION_CODENAME"
+	printf "%-20s%-10s\n" "OS_RELEASE" "$OS_RELEASE"
+	printf "%-20s%-10s\n" "KERNEL_TYPE" "$KERNEL_TYPE"
+	printf "%-20s%-10s\n" "OS_ARCH" "$OS_ARCH"
+}
+
+
 
