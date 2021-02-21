@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-02-16'
+version_files_programs='2021-02-20'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -93,7 +93,7 @@ destinationFilesSublime=(
 	[file_desktop]="$DIR_APPLICATIONS/sublime_text.desktop"
 	[file_png]="$DIR_ICONS/sublime-text.png"
 	[link]="$DIR_BIN/sublime"
-	[dir]="/opt/sublime_text"
+	[dir]="$DIR_OPTIONAL/sublime_text"
 	)
 
 declare -A destinationFilesVscode
@@ -146,7 +146,7 @@ destinationFilesTixati=(
 
 
 destinationFilesTeamviewer=(
-	'/opt/teamviewer'
+	'$DIR_OPTIONAL/teamviewer'
 	'/usr/bin/teamviewer'
 	"/usr/share/icons/hicolor/16x16/apps/TeamViewer.png"
 	"/usr/share/icons/hicolor/20x20/apps/TeamViewer.png"
@@ -193,7 +193,7 @@ destinationFilesPeazip=(
 	[file_desktop]="$DIR_APPLICATIONS/peazip.desktop" 
 	[file_png]="$DIR_ICONS/peazip.png"
 	[script]="$DIR_BIN/peazip"
-	[dir]="/opt/peazip-amd64"
+	[dir]="$DIR_OPTIONAL/peazip-amd64"
 )
 
 
@@ -201,7 +201,7 @@ destinationFilesPeazip=(
 declare -A destinationFilesRefind
 destinationFilesRefind=(  
 	[file_script]="$DIR_BIN/refind-install"
-	[dir]="/opt/refind"
+	[dir]="$DIR_OPTIONAL/refind"
 )
 
 declare -A destinationFilesStacer
