@@ -53,25 +53,19 @@ export lib_pkgmanager='True'
 
 function is_apt_process()
 {
-	while true; do
-		all_system_process=''
-		all_system_process=$(ps aux)
+	all_system_process=''
+	all_system_process=$(ps aux)
 
-		# Verificar se existe outro processo apt em execução antes de prosseguir com a instalação.
-		PidAptInstall=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(install|upgrade|update)' | awk '{print $2}')
-		PidAptSystemd=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(apt.systemd)' | awk '{print $2}')
-		PidDpkgInstall=$echo $all_system_process | grep 'root.*dpkg' | egrep -m 1 '(install)' | awk '{print $2}')
-		PidPythonAptd=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(aptd)' | awk '{print $2}')
+	# Verificar se existe outro processo apt em execução antes de prosseguir com a instalação.
+	PidAptInstall=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(install|upgrade|update)' | awk '{print $2}')
+	PidAptSystemd=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(apt.systemd)' | awk '{print $2}')
+	PidDpkgInstall=$echo $all_system_process | grep 'root.*dpkg' | egrep -m 1 '(install)' | awk '{print $2}')
+	PidPythonAptd=$(echo $all_system_process | grep 'root.*apt' | egrep -m 1 '(aptd)' | awk '{print $2}')
 
-		wait_pid "$PidAptInstall"
-		wait_pid "$PidAptSystemd"
-		wait_pid "$PidDpkgInstall"
-		sleep 0.1
-		[[ -z $PidAptInstall ]] && break
-		[[ -z $PidAptSystemd ]] && break
-		[[ -z $PidPythonAptd ]] && break
-		[[ -z $PidDpkgInstall ]] && break	
-	done
+	echo $PidAptInstall | grep -q [[:digit:]] && wait_pid "$PidAptInstall"; sleep 0.1
+	echo $PidAptSystemd | grep -q [[:digit:]] && wait_pid "$PidAptSystemd"; sleep 0.1
+	echo $PidDpkgInstall | grep -q [[:digit:]] && wait_pid "$PidDpkgInstall"; sleep 0.1
+	echo $PidPythonAptd | grep -q [[:digit:]] && wait_pid "$PidPythonAptd"; sleep 0.1
 }
 
 _GDEBI()
