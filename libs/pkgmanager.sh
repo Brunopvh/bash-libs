@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-02-20'
+version_pkgmanager='2021-02-21'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
@@ -16,35 +16,52 @@ version_pkgmanager='2021-02-20'
 function show_import_erro()
 {
 	echo "ERRO: $@"
-	echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	echo 'OU'
-	echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	read -p 'Pressione enter para continuar... ' -t 5 Input
-	echo
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
 }
 
 # print_text
-source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $lib_print_text != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # os
-source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
-	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $lib_os != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
+		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # utils
-source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
-	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $lib_utils != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
+		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # requests
-source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
-	show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $lib_requests != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
+		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
+}
+
+# platform
+[[ $lib_platform != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/platform.sh 2> /dev/null; then
+		show_import_erro "módulo platform.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 #=============================================================#
@@ -351,5 +368,68 @@ _FLATPAK()
 	else
 		red "Falha: flatpak $@"
 		return 1
+	fi
+}
+f
+
+system_pkgmanager()
+{
+	# Função para instalar os pacotes via linha de comando de acordo 
+	# o gerenciador de pacotes de cada sistema.
+
+	#=============================================================#
+	# Somente baixar os pacotes caso receber '-d' ou '--downloadonly'
+	# na linha de comando ou se a variável AssumeYes for igual a True.
+	#=============================================================#
+	
+	if [[ "$DownloadOnly" == 'True' ]] && [[ "$AssumeYes" == 'True' ]]; then 
+		# Somente baixar os pacotes e assumir yes para indagações.
+		if [[ $(uname -s) == 'FreeBSD' ]]; then 
+			_PKG install -y "$@" || return 1
+		elif [[ -f /etc/debian_version ]] && [[ -x $(which apt 2> /dev/null) ]]; then
+			_APT install --download-only --yes "$@" || return 1
+		elif [[ -f /etc/fedora-release ]] && [[ -x $(which dnf 2> /dev/null) ]]; then
+			_DNF install --downloadonly -y "$@" || return 1
+		elif [[ "$OS_ID" == 'opensuse-leap' ]] || [[ "$OS_ID" == 'opensuse-tumbleweed' ]]; then
+			_ZYPPER download "$@" || return 1
+		elif [[ "$OS_ID" == 'arch' ]]; then
+			_PACMAN -S --noconfirm --needed --downloadonly "$@" || return 1
+		else
+			red "(system_pkgmanager) Erro: $@"
+			return 1
+		fi
+		return "$?"
+	
+	elif [[ "$DownloadOnly" == 'True' ]]; then
+		# Somente baixar os pacotes.
+		if [[ $(uname -s) == 'FreeBSD' ]]; then 
+			_PKG install "$@"
+			return 
+		fi
+		
+		case "$OS_ID" in
+			debian|ubuntu|linuxmint) _APT install --download-only "$@" || return 1;;
+			opensuse-leap|opensuse-tumbleweed) _ZYPPER download "$@" || return 1;;
+			fedora) _DNF install --downloadonly "$@" || return 1;;
+			arch) _PACMAN -S --needed --downloadonly "$@" || return 1;;
+		esac
+	elif [[ "$AssumeYes" == 'True' ]]; then 
+		# Assumir yes para indagações durante a instalação, equivalênte ao comando
+		# apt install -y / aptitude install -y em sistemas debian.
+		if [[ $(uname -s) == 'FreeBSD' ]]; then _PKG install -y "$@"; return; fi
+		case "$OS_ID" in
+			debian|ubuntu|linuxmint) _APT install --yes "$@" || return 1;;
+			opensuse-leap|opensuse-tumbleweed) _ZYPPER install -y "$@" || return 1;;
+			fedora) _DNF install -y "$@" || return 1;;
+			arch) _PACMAN -S --noconfirm --needed "$@" || return 1;;
+		esac
+	else
+		if [[ $(uname -s) == 'FreeBSD' ]]; then _PKG install "$@"; return; fi
+		case "$OS_ID" in
+			debian|ubuntu|linuxmint) _APT install "$@" || return 1;;
+			opensuse-leap|opensuse-tumbleweed) _ZYPPER install "$@" || return 1;;
+			fedora) _DNF install "$@" || return 1;;
+			arch) _PACMAN -S --needed "$@" || return 1;;
+		esac
 	fi
 }

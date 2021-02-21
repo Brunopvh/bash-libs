@@ -11,7 +11,6 @@ version_files_programs='2021-02-20'
 # - REQUERIMENT = os
 #
 
-
 function show_import_erro()
 {
 	echo "ERRO: $@"
@@ -27,9 +26,11 @@ function show_import_erro()
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
 # os
-source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
-	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $lib_os != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
+		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 export lib_files_programs='True'

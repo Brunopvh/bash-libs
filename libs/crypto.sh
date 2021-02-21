@@ -13,21 +13,35 @@
 
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
-# requests
-if [[ "$lib_requests" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar requests.sh"
-		exit 1
-	}
-fi
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
+}
 
 # print_text
-if [[ "$lib_print_text" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar print_text.sh"
+[[ $lib_print_text != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
-	}
-fi
+	fi
+}
+
+# requests
+[[ $lib_requests != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
+		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
+}
+
+#=============================================================#
+
 
 gpg_verify()
 {
@@ -86,5 +100,41 @@ gpg_import()
 			rm -rf "$TempFileAsc"
 			return 1
 		fi
+	fi
+}
+
+
+__shasum__()
+{
+	# Esta função compara a hash de um arquivo local no disco com
+	# uma hash informada no parametro "$2" (hash original). 
+	#   Ou seja "$1" é o arquivo local e "$2" é uma hash
+	local hash_file=''
+	if [[ ! -f "$1" ]]; then
+		red "(__shasum__) arquivo inválido: $1"
+		return 1
+	fi
+
+	if [[ -z "$2" ]]; then
+		red "(__shasum__) use: __shasum__ <arquivo> <hash>"
+		return 1
+	fi
+
+	# Calucular o tamanho do arquivo
+	len_file=$(du -hs $1 | awk '{print $1}')
+
+	printf "Gerando hash do arquivo ... $1 $len_file\n"
+	hash_file=$(sha256sum "$1" | cut -d ' ' -f 1)
+	printf "%-15s%65s\n" "HASH original" "$2"
+	printf "%-15s%65s\n" "HASH local" "$hash_file"
+	printf "Comparando valores "
+	if [[ "$hash_file" == "$2" ]]; then
+		syellow 'OK'
+		return 0
+	else
+		sred 'FALHA'
+		red "(__shasum__): removendo arquivo inseguro ... $1"
+		rm -rf "$1"
+		return 1
 	fi
 }

@@ -21,29 +21,36 @@ version_requests='2021-02-21'
 function show_import_erro()
 {
 	echo "ERRO: $@"
-	echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	echo 'OU'
-	echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	read -p 'Pressione enter para continuar... ' -t 5 Input
-	echo
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
 }
 
 # print_text
-source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ -z $lib_print_text ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # os
-source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
-	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ -z $lib_os ]] && {
+	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
+		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # utils
-source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
-	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ -z $lib_utils ]] && {
+	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
+		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 #=============================================================#
