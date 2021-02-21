@@ -75,14 +75,14 @@ fi
 function __ping__()
 {
 	[[ ! -x $(command -v ping) ]] && {
-		_red "(_ping) ERRO ... comando ping não instalado."
+		print_erro "(_ping) ... comando ping não instalado."
 		return 1
 	}
 
 	if ping -c 1 8.8.8.8 1> /dev/null 2>&1; then
 		return 0
 	else
-		_red "ERRO ... você está off-line"
+		print_erro "você está off-line"
 		return 1
 	fi
 }
