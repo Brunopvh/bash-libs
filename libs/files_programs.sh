@@ -26,14 +26,14 @@ function show_import_erro()
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
 # os
-[[ $lib_os != 'True' ]] && {
+[[ $imported_os != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
 		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
 	fi
 }
 
-export lib_files_programs='True'
+export imported_files_programs='True'
 
 
 #=============================================================#

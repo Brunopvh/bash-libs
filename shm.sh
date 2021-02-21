@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-20'
+readonly __version__='2021-02-21'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -89,38 +89,48 @@ fi
 function show_import_erro()
 {
 	echo "ERRO: $@"
-	echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	echo 'OU'
-	echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	read -p 'Pressione enter para continuar... ' -t 5 Input
-	echo
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
 }
 
-# Importar módulos externos necessários para a execução deste script.
+
 # print_text
-source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_print_text != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # os
-source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
-	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_os != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
+		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # utils
-source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
-	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_utils != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
+		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # requests
-source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null || {
-	show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_requests != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
+		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
+#=============================================================#
 
 # Argumentos/Opções passados na linha de comando.
 OptionList=() 
@@ -424,7 +434,7 @@ function update_modules_list()
 
 	# Importar o módulo utils se ainda não estiver importado.
 	cd "$dir_of_project"
-	[[ -z $lib_utils ]] && {
+	[[ -z $imported_utils ]] && {
 		if [[ -f ./libs/utils.sh ]]; then
 			source ./libs/utils.sh
 		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then

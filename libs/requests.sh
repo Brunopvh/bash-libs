@@ -30,7 +30,7 @@ function show_import_erro()
 }
 
 # print_text
-[[ -z $lib_print_text ]] && {
+[[ $imported_print_text != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -38,7 +38,7 @@ function show_import_erro()
 }
 
 # os
-[[ -z $lib_os ]] && {
+[[ $imported_os != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
 		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -46,7 +46,7 @@ function show_import_erro()
 }
 
 # utils
-[[ -z $lib_utils ]] && {
+[[ $imported_utils != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
 		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -55,7 +55,7 @@ function show_import_erro()
 
 #=============================================================#
 
-export lib_requests='True'
+export imported_requests='True'
 
 # Verificar gerenciador de downloads.
 if [[ -x $(command -v aria2c) ]]; then

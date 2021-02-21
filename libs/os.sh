@@ -16,24 +16,25 @@ function show_import_erro()
 	sleep 3
 }
 
-
-[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
-
 # print_text
-source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_print_text != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 # utils
-source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
-	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
-	exit 1
+[[ $imported_utils != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
+		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
 }
 
 #=============================================================#
 
-export lib_os='True'
+export imported_os='True'
 
 if [[ $(id -u) == 0 ]]; then
 	export readonly DIR_BIN='/usr/local/bin'

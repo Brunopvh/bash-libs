@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 version_print_text='2021-02-20'
-lib_print_text='True'
+imported_print_text='True'
 
 #=============================================================#
 # Cores.

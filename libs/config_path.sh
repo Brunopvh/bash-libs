@@ -5,7 +5,7 @@
 #
 version_config_path='2021-02-13'
 #
-export lib_config_path='True'
+export imported_config_path='True'
 
 bash_config=~/.bashrc
 zsh_config=~/.zshrc

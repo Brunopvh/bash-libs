@@ -25,7 +25,7 @@ function show_import_erro()
 }
 
 # print_text
-[[ $lib_print_text != 'True' ]] && {
+[[ $imported_print_text != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -33,7 +33,7 @@ function show_import_erro()
 }
 
 # os
-[[ $lib_os != 'True' ]] && {
+[[ $imported_os != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
 		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -41,7 +41,7 @@ function show_import_erro()
 }
 
 # utils
-[[ $lib_utils != 'True' ]] && {
+[[ $imported_utils != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
 		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -49,7 +49,7 @@ function show_import_erro()
 }
 
 # requests
-[[ $lib_requests != 'True' ]] && {
+[[ $imported_requests != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
 		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -57,7 +57,7 @@ function show_import_erro()
 }
 
 # platform
-[[ $lib_platform != 'True' ]] && {
+[[ $imported_platform != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/platform.sh 2> /dev/null; then
 		show_import_erro "módulo platform.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -66,7 +66,7 @@ function show_import_erro()
 
 #=============================================================#
 
-export lib_pkgmanager='True'
+export imported_pkgmanager='True'
 
 function is_apt_process()
 {

@@ -1,16 +1,30 @@
 #!/usr/bin/env bash
 #
-version_utils='2021-02-13'
+version_utils='2021-02-21'
 #
 # - REQUERIMENT = print_text
 #
 
-[[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
-[[ "$lib_print_text" != 'True' ]] && {
-	source "$PATH_BASH_LIBS"/print_text.sh || echo -e "ERRO: não foi possivel importar print_text.sh"
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
 }
 
-export readonly lib_utils='True'
+# print_text
+[[ $imported_print_text != 'True' ]] && {
+	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
+		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+		exit 1
+	fi
+}
+
+export readonly imported_utils='True'
 
 question()
 {

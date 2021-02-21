@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 #
+version_crypto='2021-02-21'
 # - REQUERIMET = print_text
 # - REQUERIMET = requests
 #
@@ -25,7 +26,7 @@ function show_import_erro()
 }
 
 # print_text
-[[ $lib_print_text != 'True' ]] && {
+[[ $imported_print_text != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -33,7 +34,7 @@ function show_import_erro()
 }
 
 # requests
-[[ $lib_requests != 'True' ]] && {
+[[ $imported_requests != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
 		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
