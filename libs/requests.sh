@@ -87,6 +87,16 @@ function __ping__()
 	fi
 }
 
+function http_request()
+{
+	case "$clientDownloader" in
+		curl) curl -A curl -s -S -L "$@";;
+		wget) wget -q -O- "$@";;
+	esac
+	[[ $? == 0 ]] && return 0
+	return $?
+}
+
 function download()
 {
 	# Baixa arquivos da internet.
