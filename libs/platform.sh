@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 
-export version_platform='20201-02-20'
+export version_platform='20201-02-21'
 export KERNEL_TYPE=$(uname -s)
 export OS_ARCH='None'
 export OS_ID='None'
@@ -54,6 +54,13 @@ if [[ "$file_release" ]] && [[ $(grep '^VERSION_CODENAME=' "$file_release") ]]; 
 	VERSION_CODENAME=$(grep -m 1 '^VERSION_CODENAME=' "$file_release" | sed 's/.*VERSION_CODENAME=//g')
 fi
 
+if [[ -f /etc/debian_version ]] && [[ -x $(command -v apt) ]]; then
+	BASE_DISTRO='debian'
+elif [[ -f /etc/fedora-release ]] && [[ -x $(commnad -v dnf) ]]; then
+	BASE_DISTRO='fedora'
+else
+	BASE_DISTRO	='None'
+fi
 function show_platform_info()
 {
 	# Exibir informações básicas dos sitema operacional no stdout
@@ -63,6 +70,7 @@ function show_platform_info()
 	printf "%-20s%-10s\n" "OS_RELEASE" "$OS_RELEASE"
 	printf "%-20s%-10s\n" "KERNEL_TYPE" "$KERNEL_TYPE"
 	printf "%-20s%-10s\n" "OS_ARCH" "$OS_ARCH"
+	printf "%-20s%-10s\n" "BASE_DISTRO" "$BASE_DISTRO"
 }
 
 

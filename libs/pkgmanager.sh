@@ -370,7 +370,7 @@ _FLATPAK()
 		return 1
 	fi
 }
-f
+
 
 system_pkgmanager()
 {
