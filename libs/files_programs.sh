@@ -11,27 +11,28 @@ version_files_programs='2021-02-20'
 # - REQUERIMENT = os
 #
 
+
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
+}
+
+
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
-[[ ! -f $os ]] && {
-	echo "(files_programs) ERRO: módulo os.sh não encontrado."
-	sleep 1
+
+# os
+source "$PATH_BASH_LIBS"/os.sh 2> /dev/null || {
+	show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
 	exit 1
 }
 
-source $os
 export lib_files_programs='True'
-
-# Verificar se as variáveis com os diretórios de configuração e instalação dos
-# aplicativos foram definidas.
-[[ ! -d $DIR_BIN ]] && mkdir "$DIR_BIN"
-[[ ! -d $DIR_APPLICATIONS ]] && mkdir "$DIR_APPLICATIONS"
-[[ ! -d $DIR_ICONS ]] && mkdir "$DIR_ICONS"
-[[ ! -d $DIR_THEMES ]] && mkdir "$DIR_THEMES"
-[[ ! -d $DIR_APPLICATIONS ]] && mkdir "$DIR_APPLICATIONS"
-[[ ! -d $DIR_LIB ]] && mkdir "$DIR_LIB"
-[[ ! -d $DIR_SHARE ]] && mkdir "$DIR_SHARE"
-[[ ! -d $DIR_OPTIONAL ]] && mkdir "$DIR_OPTIONAL"
-[[ ! -d $DIR_HICOLOR ]] && mkdir "$DIR_HICOLOR"
 
 
 #=============================================================#
@@ -48,7 +49,7 @@ declare -A destinationFilesStorecli
 destinationFilesStorecli=(
 	[file_desktop]="$DIR_APPLICATIONS/storecli.desktop"
 	[link]="$DIR_BIN/storecli"
-	[dir]="$DIR_BIN/storecli-amd64"
+	[dir]="$DIR_OPTIONAL/storecli-amd64"
 	)
 
 #=============================================================#
@@ -58,24 +59,24 @@ destinationFilesStorecli=(
 declare -A destinationFilesAndroidStudio
 destinationFilesAndroidStudio=(
 	[file_desktop]="$DIR_APPLICATIONS/jetbrains-studio.desktop"
-	[file_png]="$DIR_ICONS/studio.png"
+	[png]="$DIR_ICONS/studio.png"
 	[link]="$DIR_BIN/studio"
-	[dir]="$DIR_BIN/android-studio"
+	[dir]="$DIR_OPTIONAL/android-studio"
 	)
 
 declare -A destinationFilesIdeaic
 destinationFilesIdeaic=(
 	[file_desktop]="$DIR_APPLICATIONS/jetbrains-idea.desktop"
-	[file_png]="$DIR_ICONS/idea.png"
-	[file_script]="$DIR_BIN/idea"
-	[dir]="$DIR_BIN/idea-IC"
+	[png]="$DIR_ICONS/idea.png"
+	[script]="$DIR_BIN/idea"
+	[dir]="$DIR_OPTIONAL/idea-IC"
 	)
 
 
 declare -A destinationFilesNodejs
 destinationFilesNodejs=(             
 	[script]="$DIR_BIN/nodejs"                  
-	[dir]="$DIR_BIN/nodejs-amd64"
+	[dir]="$DIR_OPTIONAL/nodejs-amd64"
 	[npm_link]="$DIR_BIN/npm" 
 	[npx_link]="$DIR_BIN/npx"           
 )
@@ -83,15 +84,15 @@ destinationFilesNodejs=(
 declare -A destinationFilesPycharm
 destinationFilesPycharm=(
 	[file_desktop]="$DIR_APPLICATIONS/pycharm.desktop"
-	[file_png]="$DIR_ICONS/pycharm.png"
+	[png]="$DIR_ICONS/pycharm.png"
 	[link]="$DIR_BIN/pycharm"
-	[dir]="$DIR_BIN/pycharm-community"
+	[dir]="$DIR_OPTIONAL/pycharm-community"
 	)
 
 declare -A destinationFilesSublime
 destinationFilesSublime=(
 	[file_desktop]="$DIR_APPLICATIONS/sublime_text.desktop"
-	[file_png]="$DIR_ICONS/sublime-text.png"
+	[png]="$DIR_ICONS/sublime-text.png"
 	[link]="$DIR_BIN/sublime"
 	[dir]="$DIR_OPTIONAL/sublime_text"
 	)
@@ -99,9 +100,9 @@ destinationFilesSublime=(
 declare -A destinationFilesVscode
 destinationFilesVscode=(
 	[file_desktop]="$DIR_APPLICATIONS/code.desktop"  
-	[file_png]="$DIR_ICONS/code.png"             
+	[png]="$DIR_ICONS/code.png"             
 	[link]="$DIR_BIN/code"                  
-	[dir]="$DIR_BIN/code-amd64"            
+	[dir]="$DIR_OPTIONAL/code-amd64"            
 )
 
 #=============================================================#
@@ -131,7 +132,7 @@ destinationFilesLibreofficeAppimage=(
 declare -A destinationFilesTelegram
 destinationFilesTelegram=(
 	[file_desktop]="$DIR_APPLICATIONS/telegramdesktop.desktop" 
-	[file_png]="$DIR_ICONS/telegram.png"                  
+	[png]="$DIR_ICONS/telegram.png"                  
 	[link]="$DIR_BIN/telegram"                       
 	[dir]="$DIR_OPTIONAL/telegram-amd64"                  
 )
@@ -140,8 +141,8 @@ destinationFilesTelegram=(
 declare -A destinationFilesTixati
 destinationFilesTixati=(
 	[file_desktop]="$DIR_APPLICATIONS/tixati.desktop"
-	[file_png]="$DIR_ICONS/tixati.png" 
-	[file_bin]="$DIR_BIN/tixati"                                       
+	[png]="$DIR_ICONS/tixati.png" 
+	[bin]="$DIR_BIN/tixati"                                       
 )
 
 
@@ -164,10 +165,10 @@ destinationFilesTeamviewer=(
 declare -A destinationFilesYoutubeDlGuiUser
 destinationFilesYoutubeDlGuiUser=(
 	[file_desktop]="$DIR_APPLICATIONS/youtube-dl-gui.desktop"
-	[file_png]="$DIR_ICONS/youtube-dl-gui.png" 
+	[png]="$DIR_ICONS/youtube-dl-gui.png" 
 	[pixmaps]="$DIR_HICOLOR/youtube-dl-gui"
-	[file_script]="$DIR_BIN/youtube-dl-gui"  
-	[dir]="$DIR_BIN/youtube_dl_gui"                                     
+	[script]="$DIR_BIN/youtube-dl-gui"  
+	[dir]="$DIR_OPTIONAL/youtube_dl_gui"                                     
 )
 
 #=============================================================#
@@ -191,7 +192,7 @@ destinationFilesCpux=(
 declare -A destinationFilesPeazip
 destinationFilesPeazip=(
 	[file_desktop]="$DIR_APPLICATIONS/peazip.desktop" 
-	[file_png]="$DIR_ICONS/peazip.png"
+	[png]="$DIR_ICONS/peazip.png"
 	[script]="$DIR_BIN/peazip"
 	[dir]="$DIR_OPTIONAL/peazip-amd64"
 )
@@ -200,7 +201,7 @@ destinationFilesPeazip=(
 # Refind
 declare -A destinationFilesRefind
 destinationFilesRefind=(  
-	[file_script]="$DIR_BIN/refind-install"
+	[script]="$DIR_BIN/refind-install"
 	[dir]="$DIR_OPTIONAL/refind"
 )
 
@@ -227,14 +228,14 @@ destinationFilesPapirus=(
 declare -A destinationFilesEpsxe
 destinationFilesEpsxe=(
 	[file_desktop]="$DIR_APPLICATIONS/epsxe.desktop"
-	[file_png]="$DIR_ICONS/ePSxe.svg"
+	[png]="$DIR_ICONS/ePSxe.svg"
 	[link]="$DIR_BIN/epsxe"
-	[dir]="$DIR_BIN/epsxe-amd64"
+	[dir]="$DIR_OPTIONAL/epsxe-amd64"
 )
 
 declare -A destinationFilesEpsxeWin32
 destinationFilesEpsxeWin32=(
 	[file_desktop]="$DIR_APPLICATIONS/epsxe-win.desktop"
-	[file_script]="$DIR_BIN/epsxe-win"
+	[script]="$DIR_OPTIONAL/epsxe-win"
 	[dir]="$HOME/.wine/drive_c/epsxe-win"
 	)

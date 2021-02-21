@@ -1,27 +1,37 @@
 #!/usr/bin/env bash
 #
-version_os='2021-02-13'
+version_os='2021-02-21'
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
 #
 
+function show_import_erro()
+{
+	echo "ERRO: $@"
+	if [[ -x $(command -v curl) ]]; then
+		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v wget) ]]; then
+		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	fi
+	sleep 3
+}
+
+
 [[ -z $PATH_BASH_LIBS ]] && source ~/.shmrc
 
 # print_text
-if [[ "$lib_print_text" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar print_text.sh"
-		exit 1
-	}
-fi
+source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null || {
+	show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
 
 # utils
-if [[ "$lib_utils" != 'True' ]]; then
-	source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
-		echo -e "ERRO: não foi possivel importar utils.sh"
-		exit 1
-	}
-fi
+source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null || {
+	show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
+	exit 1
+}
+
+#=============================================================#
 
 export lib_os='True'
 
@@ -44,6 +54,15 @@ else
 	export readonly DIR_ICONS=~/.local/share/icons
 	export readonly DIR_HICOLOR=~/.icons
 fi
+
+[[ ! -d $DIR_BIN ]] && mkdir "$DIR_BIN"
+[[ ! -d $DIR_LIB ]] && mkdir "$DIR_LIB"
+[[ ! -d $DIR_OPTIONAL ]] && mkdir "$DIR_OPTIONAL"
+[[ ! -d $DIR_SHARE ]] && mkdir "$DIR_SHARE"
+[[ ! -d $DIR_THEMES ]] && mkdir "$DIR_THEMES"
+[[ ! -d $DIR_APPLICATIONS ]] && mkdir "$DIR_APPLICATIONS"
+[[ ! -d $DIR_ICONS ]] && mkdir "$DIR_ICONS"
+[[ ! -d $DIR_HICOLOR ]] && mkdir "$DIR_HICOLOR"
 
 kernel_type=$(uname -s)
 

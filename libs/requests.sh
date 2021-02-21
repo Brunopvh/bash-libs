@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_requests='2021-02-20'
+version_requests='2021-02-21'
 #
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
@@ -102,7 +102,7 @@ function download()
 	local path_file="$2"
 
 	if [[ "$clientDownloader" == 'None' ]]; then
-		red "(download): Instale curl|wget|aria2c para prosseguir."
+		print_erro "(download) Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
 	fi
@@ -136,7 +136,7 @@ function download()
 	fi
 
 	[[ $? == 0 ]] && echo 'OK' && return 0
-	red '(download): ERRO'
+	print_erro '(download)'
 }
 
 
