@@ -94,6 +94,10 @@ wait_pid()
 	local num_char='0'
 	local Pid="$1"
 
+	# Chechar se Pid é um digito
+	echo $Pid | grep -q [[:digit:]]
+	[[ $? == 0 ]] || return
+
 	while true; do
 		ALL_PROCS=$(ps aux)
 		if [[ $(echo -e "$ALL_PROCS" | grep -m 1 "$Pid" | awk '{print $2}') != "$Pid" ]]; then 
