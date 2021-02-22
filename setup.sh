@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version='2021-02-20'
+version='2021-02-21'
 # Script para automatizar a instalação do gerenciador shm(Shell Package Manager).
 #
 # INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
@@ -17,8 +17,8 @@ else
 	PATH_BASH_LIBS=~/.local/lib/bash
 fi
 
-[[ ! -d $DESTINATION_DIR ]] && mkdir $DESTINATION_DIR
-[[ ! -d $PATH_BASH_LIBS ]] && mkdir $PATH_BASH_LIBS
+[[ ! -d $DESTINATION_DIR ]] && mkdir -p $DESTINATION_DIR
+[[ ! -d $PATH_BASH_LIBS ]] && mkdir -p $PATH_BASH_LIBS
 DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
 URL_REPO_LIBS_MAIN='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 TEMPORARY_DIR=$(mktemp -d)
