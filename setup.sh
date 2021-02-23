@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-version='2021-02-21'
 # Script para automatizar a instalação do gerenciador shm(Shell Package Manager).
 #
 # INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
@@ -8,6 +7,8 @@ version='2021-02-21'
 # INSTALAÇÃO ONLINE: sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #                    sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
+
+version='2021-02-22'
 
 if [[ $(id -u) == 0 ]]; then
 	DESTINATION_DIR='/usr/local/bin'
@@ -55,7 +56,7 @@ function online_setup()
 	echo 'OK'
 	cd $DIR_DOWNLOAD
 	echo -ne "Descompactando ... "
-	tar -zxvf "$PKG_LIBS" -C "$DIR_UNPACK" 1> /dev/null || exit 1
+	tar -zxvf "$PKG_LIBS" -C "$DIR_UNPACK" 1> /dev/null || return 1
 	echo 'OK'
 	cd $DIR_UNPACK
 	mv $(ls -d bash*) bash-libs
@@ -67,7 +68,7 @@ function online_setup()
 	cp -u ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
 	cp -u ./libs/print_text.sh "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null
 	cp -u ./libs/config_path.sh "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null
-	echo -ne "Instalando ... shm "
+	echo -e "Instalando ... $DESTINATION_SCRIPT"
 	cp -u shm.sh "$DESTINATION_SCRIPT" 1> /dev/null 
 	chmod +x "$DESTINATION_SCRIPT"
 }
@@ -104,11 +105,11 @@ fi
 
 
 if [[ -x "$DESTINATION_SCRIPT" ]]; then
-	printf "Feito!\n"
-	echo -e "Executando ... $DESTINATION_SCRIPT --configure"
+	echo -e "Configurando"
 	"$DESTINATION_SCRIPT" --configure
+	printf "Feito!\n"
 else
-	printf "Falha"
+	printf "Falha\n"
 	exit 1
 fi
 

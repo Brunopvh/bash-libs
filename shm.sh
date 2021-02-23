@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-21'
+readonly __version__='2021-02-22'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -213,7 +213,7 @@ function __copy_mod__()
 		echo 'OK'
 		return 0
 	else
-		red "Falha"
+		print_erro "$1"
 		return 1
 	fi
 }
@@ -440,7 +440,7 @@ function update_modules_list()
 		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
 			source "$PATH_BASH_LIBS/utils.sh"
 		else
-			echo -e "(self_update) ERRO ... módulo utils.sh não encontrado."]
+			print_erro "(update_modules_list) ... módulo utils.sh não encontrado."]
 			return 1
 		fi
 	}
