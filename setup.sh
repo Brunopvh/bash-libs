@@ -4,11 +4,11 @@
 #
 # INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
 #
-# INSTALAÇÃO ONLINE: sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
-#                    sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# INSTALAÇÃO ONLINE: sudo bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+#                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-02-22'
+version='2021-02-26'
 
 if [[ $(id -u) == 0 ]]; then
 	DESTINATION_DIR='/usr/local/bin'
@@ -20,13 +20,17 @@ fi
 
 [[ ! -d $DESTINATION_DIR ]] && mkdir -p $DESTINATION_DIR
 [[ ! -d $PATH_BASH_LIBS ]] && mkdir -p $PATH_BASH_LIBS
+
 DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
 URL_REPO_LIBS_MAIN='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 TEMPORARY_DIR=$(mktemp -d)
-DIR_UNPACK="$TEMPORARY_DIR/unpack"; mkdir -p $DIR_UNPACK
-DIR_DOWNLOAD="$TEMPORARY_DIR/download"; mkdir -p $DIR_DOWNLOAD
+DIR_UNPACK="$TEMPORARY_DIR/unpack"
+DIR_DOWNLOAD="$TEMPORARY_DIR/download" 
 PKG_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
 URL_REPO_LIBS_MAIN='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
+
+mkdir -p $DIR_UNPACK
+mkdir -p $DIR_DOWNLOAD
 
 readonly _script=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$_script")
@@ -77,12 +81,12 @@ function offline_setup()
 {
 	cd $dir_of_project
 	[[ ! -d ./libs ]] && {
-		echo "offline_setup ERRO: diretório libs não encontrado."
+		echo "ERRO offline_setup: diretório libs não encontrado."
 		return 1
 	}
 
 	[[ ! -f ./shm.sh ]] && {
-		echo "offline_setup ERRO: arquivo shm.sh não encontrado."
+		echo "ERRO offline_setup: arquivo shm.sh não encontrado."
 		return 1
 	}
 

@@ -11,8 +11,8 @@
 # URL/INSTALAÇÃO
 #--------------------------------------------------#
 # https://github.com/Brunopvh/bash-libs
-# sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
-# sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# sudo bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 #--------------------------------------------------#
 # USO
@@ -51,19 +51,21 @@ readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
-readonly TEMPORARY_DIR=$(mktemp --directory); mkdir -p "$TEMPORARY_DIR"
+readonly TEMPORARY_DIR=$(mktemp --directory) 
 readonly FILE_LIBS_TAR="$TEMPORARY_DIR/bash-libs.tar.gz"
 readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
 readonly URL_MODULES_LIST='https://raw.github.com/Brunopvh/bash-libs/main/libs/modules.list'
 readonly url_shell_pkg_manager='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
 
+mkdir -p "$TEMPORARY_DIR"
+
 if [[ $(id -u) == 0 ]]; then
 	readonly PREFIX='/usr/local/lib'
-	readonly DIR_BIN='/usr/local/bin'
+	DIR_BIN='/usr/local/bin'
 	readonly DIR_CONFIG="/etc/${__appname__}"
 else
 	readonly PREFIX=~/.local/lib
-	readonly DIR_BIN=~/.local/bin
+	DIR_BIN=~/.local/bin
 	readonly DIR_CONFIG=~/".config/${__appname__}"
 fi
 
@@ -88,47 +90,87 @@ fi
 
 function show_import_erro()
 {
-	echo "ERRO: $@"
-	if [[ -x $(command -v curl) ]]; then
-		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	elif [[ -x $(command -v wget) ]]; then
-		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	echo "ERRO módulo não encontrado ... $@"
+	if [[ -x $(command -v wget) ]]; then
+		echo "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+	elif [[ -x $(command -v curl) ]]; then
+		echo "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
-	sleep 3
+	sleep 1
+	return 1
+}
+
+function check_external_modules()
+{
+	# Verificar se todos os módulos externos necessários estão disponíveis para serem importados.
+	[[ ! -f $config_path ]] && { 
+		show_import_erro "config_path"; return 1
+	}
+
+	[[ ! -f $os ]] && { 
+		show_import_erro "os"; return 1 
+	}
+
+	[[ ! -f $requests ]] && { 
+		show_import_erro "requests"; return 1
+	}
+
+	[[ ! -f $utils ]] && { 
+		show_import_erro "utils"; return 1 
+	}
+	
+	[[ ! -f $print_text ]]&& {
+		show_import_erro "print_text"; return 1
+	}
+
+	return 0
+}
+
+check_external_modules || {
+	# Verificar se os módulos externos estão instalados no sistema.
+	cd "$dir_of_project"
+	if [[ ! -f setup.sh ]]; then
+		chmod +x ./setup.sh
+		./setup.sh install || ./setup.sh
+	elif [[ -x $(command -v wget) ]]; then
+		bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/storecli/master/setup.sh)"
+	elif [[ -x $(command -v curl) ]]; then
+		bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/storecli/master/setup.sh)"
+	else
+		echo "Instale curl ou wget"
+		exit 1
+	fi
+	shm update
+	exit 1
 }
 
 
 # print_text
 [[ $imported_print_text != 'True' ]] && {
-	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
-		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
-		exit 1
-	fi
+	source "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null || exit 1
 }
 
 # os
 [[ $imported_os != 'True' ]] && {
-	if ! source "$PATH_BASH_LIBS"/os.sh 2> /dev/null; then
-		show_import_erro "módulo os.sh não encontrado em ... $PATH_BASH_LIBS"
-		exit 1
-	fi
+	source "$PATH_BASH_LIBS"/os.sh 1> /dev/null || exit 1
 }
+
 
 # utils
 [[ $imported_utils != 'True' ]] && {
-	if ! source "$PATH_BASH_LIBS"/utils.sh 2> /dev/null; then
-		show_import_erro "módulo utils.sh não encontrado em ... $PATH_BASH_LIBS"
-		exit 1
-	fi
+	source "$PATH_BASH_LIBS"/utils.sh 1> /dev/null || exit 1
 }
 
 # requests
 [[ $imported_requests != 'True' ]] && {
-	if ! source "$PATH_BASH_LIBS"/requests.sh 2> /dev/null; then
-		show_import_erro "módulo requests.sh não encontrado em ... $PATH_BASH_LIBS"
-		exit 1
-	fi
+	source "$PATH_BASH_LIBS"/requests.sh 1> /dev/null || exit 1
 }
+
+# config_path
+[[ $imported_config_path != 'True' ]] && {
+	source "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null || exit 1
+}
+
 
 #=============================================================#
 
@@ -182,7 +224,7 @@ function __rmdir__()
 	[[ -z $1 ]] && return 1
 
 	local msg="Deseja ${CRed}deletar${CReset} os seguintes arquivos/diretórios? : $@ \n${CGreen}s${CReset}/${CRed}N${CReset}: "
-	if [[ "$CONFIRM" != 'True' ]]; then
+	if [[ "$AssumeYes" != 'True' ]]; then
 		echo -ne "$msg"
 		read -n 1 -t 20 yesno
 		printf "\n"
@@ -430,20 +472,7 @@ function list_modules()
 function update_modules_list()
 {
 	# Usar o módulo utils.sh
-	local temp_file_update=$(mktemp); rm -rf "$temp_file_update" 2> /dev/null
-
-	# Importar o módulo utils se ainda não estiver importado.
-	cd "$dir_of_project"
-	[[ -z $imported_utils ]] && {
-		if [[ -f ./libs/utils.sh ]]; then
-			source ./libs/utils.sh
-		elif [[ -f "$PATH_BASH_LIBS/utils.sh" ]]; then
-			source "$PATH_BASH_LIBS/utils.sh"
-		else
-			print_erro "(update_modules_list) ... módulo utils.sh não encontrado."]
-			return 1
-		fi
-	}
+	local temp_file_update=$(mktemp -u)
 	
 	_ping || return 1
 	case "$clientDownloader" in
@@ -452,23 +481,11 @@ function update_modules_list()
 		aria2c) aria2c "$URL_MODULES_LIST" -d $(dirname "$temp_file_update") -o $(basename "$temp_file_update") 1> /dev/null &;;
 	esac	
 	loop_pid "$!" "Atualizando a lista de módulos aguarde"
-
 	__copy_mod__ "$temp_file_update" "$MODULES_LIST"
 }
 
 function _configure()
-{
-	# Configurações para primeira execução.
-	cd "$dir_of_project"
-	if [[ -f ./libs/config_path.sh ]]; then
-		source ./libs/config_path.sh
-	elif [[ -f "$PATH_BASH_LIBS"/config_path.sh ]]; then
-		source "$PATH_BASH_LIBS"/config_path.sh
-	else
-		install_modules config_path || return 1
-		source "$PATH_BASH_LIBS"/config_path.sh
-	fi
-	
+{	
 	update_modules_list || return 1
 	backup
 	config_bashrc

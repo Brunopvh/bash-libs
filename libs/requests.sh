@@ -11,8 +11,8 @@ version_requests='2021-02-21'
 # Instalação dos modulos necessários.
 #--------------------------------------------------#
 # https://github.com/Brunopvh/bash-libs
-# sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
-# sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
+# sudo bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
 #
 #
 
@@ -22,9 +22,9 @@ function show_import_erro()
 {
 	echo "ERRO: $@"
 	if [[ -x $(command -v curl) ]]; then
-		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	elif [[ -x $(command -v wget) ]]; then
-		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
 	sleep 3
 }
@@ -192,7 +192,7 @@ gitclone()
 	if [[ -d "$dir_repo" ]]; then
 		yellow "Diretório encontrado ... $dir_repo"
 		if question "Deseja remover o diretório clonado anteriormente"; then
-			export CONFIRM='True'
+			export AssumeYes='True'
 			__rmdir__ "$dir_repo"
 		else
 			return 0

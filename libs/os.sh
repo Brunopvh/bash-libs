@@ -9,9 +9,9 @@ function show_import_erro()
 {
 	echo "ERRO: $@"
 	if [[ -x $(command -v curl) ]]; then
-		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	elif [[ -x $(command -v wget) ]]; then
-		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
 	sleep 3
 }

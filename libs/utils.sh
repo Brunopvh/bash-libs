@@ -9,9 +9,9 @@ function show_import_erro()
 {
 	echo "ERRO: $@"
 	if [[ -x $(command -v curl) ]]; then
-		echo -e "Execute ... sh -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	elif [[ -x $(command -v wget) ]]; then
-		echo -e "Execute ... sh -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
+		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
 	sleep 3
 }
@@ -40,7 +40,7 @@ question()
 	# O usuário não deve ser indagado caso a opção "-y" ou --yes esteja presente 
 	# na linha de comando. Nesse caso a função irá retornar '0' como se o usuário estivesse
 	# aceitando todas as indagações.
-	[[ "$CONFIRM" == 'True' ]] && return 0
+	[[ "$AssumeYes" == 'True' ]] && return 0
 		
 	echo -ne "$@ ${CGreen}s${CReset}/${CRed}N${CReset}?: "
 	read -t 15 -n 1 yesno
