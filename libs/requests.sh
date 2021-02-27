@@ -92,6 +92,12 @@ function http_request()
 	case "$clientDownloader" in
 		curl) curl -A curl -s -S -L "$@";;
 		wget) wget -q -O- "$@";;
+		aria2c)
+				local temp_file=$(mktemp -u)
+				aria2c -d $(dirname "$temp_file") -o $(basename "$temp_file") "$@" 1> /dev/null || return 1
+				cat "$temp_file"
+				rm "$temp_file"
+			;;
 	esac
 	[[ $? == 0 ]] && return 0
 	return $?
