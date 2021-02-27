@@ -169,21 +169,28 @@ add_repo_apt()
 	# Se o repositório já existir em outro arquivo a adição do repositório
 	# será IGNORADA.
 
-	# $2 = Nome do arquivo para gravar o repositório. Se o arquivo já existir
+	# $2 = Nome do arquivo para gravar o repositório (.list). Se o arquivo já existir
 	# a adição do repositório será IGNORADA. 
 
-	# IMPORTANTE antes de adicionar os repositório, e necessário adicionar key.pub 
-	# para cada repositório, para evitar problemas quando atualizar o cache do apt (sudo apt update)
+	# IMPORTANTE: antes de adicionar os repositório, é necessário adicionar o key.pub 
+	# de cada repositório adicionado, evitando assim possíveis problemas quando atualizar 
+	# o cache do apt (sudo apt update).
 	if [[ -z $2 ]]; then
-		sred "(add_repo_apt): informe um arquivo para adicionar o repositório"
+		print_erro "(add_repo_apt): informe um arquivo para adicionar o repositório"
 		return 1
 	fi
+
+	[[ -f $2 ]] && {
+		red "(add_repo_apt) O arquivo já existe ... $2"
+		return 1
+	}
 
 	local repo="$1"
 	local file_repo="$2"
 
 	find /etc/apt -name *.list | xargs grep "^${repo}" 2> /dev/null
-	if [[ $? == 0 ]] || [[ -f "$file_repo" ]]; then
+
+	if [[ $? == 0 ]]; then
 		print_info "o repositório já existe em /etc/apt pulando."
 	else
 		print_info "Adicionando repositório em ... $file_repo"
