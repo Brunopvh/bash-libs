@@ -267,8 +267,7 @@ _rpm_key_add()
 		fi
 
 		# Obter key apartir do url $1.
-		local TEMP_FILE_KEY="$(mktemp)_rpm_key_add.key"
-
+		local TEMP_FILE_KEY="$(mktemp -u)"
 		printf "Adicionando key apartir do url ... $1 "
 		download "$1" "$TEMP_FILE_KEY" 1> /dev/null || return 1 
 
@@ -276,7 +275,7 @@ _rpm_key_add()
 			sudo rpm --import "$TEMP_FILE_KEY" || return 1
 			return 0
 		else
-			printf "${CRed}FALHA no download${CReset}\n"
+			print_erro "(_rpm_key_add)"
 			return 1
 		fi
 	fi
@@ -300,14 +299,14 @@ _addrepo_in_fedora()
 
 	local url_repo="$1"
 	local file_repo="$2"
-	local temp_file_repo="$(mktemp)_yum.repo"
+	local temp_file_repo="$(mktemp -u)"
 
 	[[ -f "$file_repo" ]] && {
-		printf "${CGreen}INFO${CReset} ... repositório já existe em /etc/yum.repos.d pulando.\n"
+		print_info "repositório já existe em /etc/yum.repos.d pulando.\n"
 		return 0
 	}
 	
-	printf "${CGreen}A${CReset}dicionando repositório em ... $file_repo\n"
+	print_info "adicionando repositório em ... $file_repo\n"
 	download "$url_repo" "$temp_file_repo" 1> /dev/null || return 1
 	__sudo__ mv "$temp_file_repo" "$file_repo" 
 	__sudo__ chown root:root "$file_repo"
@@ -326,7 +325,7 @@ _ZYPPER()
 		pidZypperInstall=$(ps aux | grep 'root.*zypper' | egrep -m 1 '(install)' | awk '{print $2}')
 	done
 
-	_print "Executando ... sudo zypper $@"
+	echo -e "Executando ... sudo zypper $@"
 	if sudo zypper "$@"; then
 		return 0
 	else
