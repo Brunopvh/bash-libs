@@ -46,7 +46,7 @@
 #
 #
 
-readonly __version__='2021-02-22'
+readonly __version__='2021-02-27'
 readonly __author__='Bruno Chaves'
 readonly __appname__='shell-pkg-manager'
 readonly __script__=$(readlink -f "$0")
@@ -247,9 +247,34 @@ function __rmdir__()
 	done
 }
 
+function exists_file()
+{
+	# Verificar a existencia de arquivos
+	# $1 = Arquivo a verificar.
+	# Também suporta uma mais de um arquivo a ser testado.
+	# exists_file arquivo1 arquivo2 arquivo3 ...
+	# se um arquivo informado como parâmetro não existir, esta função irá retornar 1.
+
+	[[ -z $1 ]] && return 1
+	export STATUS_OUTPUT=0
+
+	while [[ $1 ]]; do
+		if [[ ! -f "$1" ]]; then
+			export STATUS_OUTPUT=1
+			echo -e "ERRO ... o arquivo não existe $1"
+			#sleep 0.05
+		fi
+		shift
+	done
+
+	[[ "$STATUS_OUTPUT" == 0 ]] && return 0
+	return 1
+}
+
 function __copy_mod__()
 {
 	# Copia os módulos.
+	exists_file "$1" || return 1
 	echo -ne "Instalando ... $2 "
 	if cp -R "$1" "$2"; then
 		echo 'OK'
@@ -472,7 +497,7 @@ function list_modules()
 function update_modules_list()
 {
 	# Usar o módulo utils.sh
-	local temp_file_update=$(mktemp -u)
+	local temp_file_update=$(mktemp -u); rm -rf $temp_file_update 2> /dev/null
 	
 	_ping || return 1
 	case "$clientDownloader" in

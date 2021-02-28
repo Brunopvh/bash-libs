@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 #
-# Script para automatizar a instalação do gerenciador shm(Shell Package Manager).
+# Script para automatizar a instalação do gerenciador shm (Shell Package Manager).
 #
-# INSTALAÇÃO OFFLINE: chmod +x setup.sh; ./setup.sh
+# INSTALAÇÃO OFFLINE: chmod +x setup.sh 
+#                     ./setup.sh
 #
-# INSTALAÇÃO ONLINE: sudo bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+# INSTALAÇÃO ONLINE: 
+#                    sudo bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-02-26'
+version='2021-02-27'
 
+# Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
 	DESTINATION_DIR='/usr/local/bin'
 	PATH_BASH_LIBS='/usr/local/lib/bash'
@@ -46,18 +49,43 @@ else
 	exit 1
 fi
 
+function exists_file()
+{
+	# Verificar a existencia de arquivos
+	# $1 = Arquivo a verificar.
+	# Também suporta uma mais de um arquivo a ser testado.
+	# exists_file arquivo1 arquivo2 arquivo3 ...
+	# se um arquivo informado como parâmetro não existir, esta função irá retornar 1.
+
+	[[ -z $1 ]] && return 1
+	export STATUS_OUTPUT=0
+
+	while [[ $1 ]]; do
+		if [[ ! -f "$1" ]]; then
+			export STATUS_OUTPUT=1
+			echo -e "ERRO ... o arquivo não existe $1"
+			#sleep 0.05
+		fi
+		shift
+	done
+
+	[[ "$STATUS_OUTPUT" == 0 ]] && return 0
+	return 1
+}
+
 function online_setup()
 {
 	# Baixar os arquivos do repositório main.
-	echo -ne "Baixando ... $URL_REPO_LIBS_MAIN "
+	echo -ne "Baixando arquivos do repositório ... $URL_REPO_LIBS_MAIN "
 	case "$clientDownloader" in
 		aria2c) aria2c "$URL_REPO_LIBS_MAIN" -d $(dirname "$PKG_LIBS") -o $(basename "$PKG_LIBS") 1> /dev/null;;
 		wget) wget -q -O "$PKG_LIBS" "$URL_REPO_LIBS_MAIN";;
 		curl) curl -fsSL -o "$PKG_LIBS" "$URL_REPO_LIBS_MAIN";;
 	esac
 
-	[[ $? == 0 ]] || exit 1
+	[[ $? == 0 ]] || return 1
 	echo 'OK'
+
 	cd $DIR_DOWNLOAD
 	echo -ne "Descompactando ... "
 	tar -zxvf "$PKG_LIBS" -C "$DIR_UNPACK" 1> /dev/null || return 1
@@ -90,6 +118,9 @@ function offline_setup()
 		return 1
 	}
 
+	# Verificar a existência dos módulos/dependências locais.
+	exists_file ./libs/os.sh ./libs/requests.sh ./libs/utils.sh ./libs/print_text.sh ./libs/config_path.sh || return 1
+
 	echo -ne "Copiando arquivos ... "
 	cp ./libs/os.sh "$PATH_BASH_LIBS"/os.sh 1> /dev/null
 	cp ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
@@ -102,9 +133,9 @@ function offline_setup()
 }
 
 if [[ "$1" == 'install' ]]; then
-	offline_setup
+	offline_setup || exit 1
 else
-	online_setup
+	online_setup || exit 1
 fi
 
 
