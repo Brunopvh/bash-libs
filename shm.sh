@@ -3,15 +3,16 @@
 #
 
 readonly __version__='2021-02-28'
+readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
 
 if [[ -x $(command -v aria2c) ]]; then
-	clientDownload='aria2c'
+	clientDownloader='aria2c'
 elif [[ -x $(command -v wget) ]]; then
-	clientDownload='wget'
+	clientDownloader='wget'
 elif [[ -x $(command -v curl) ]]; then
-	clientDownload='curl'
+	clientDownloader='curl'
 else
 	echo "ERRO ... instale curl ou wget para prosseguir."
 	exit 1
@@ -20,7 +21,7 @@ fi
 function show_import_erro()
 {
 	echo "ERRO shm: $@"
-	case "$clientDownload" in
+	case "$clientDownloader" in
 		curl) 
 			echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 			;;
@@ -37,6 +38,21 @@ function show_import_erro()
 # Setar o diretório das libs no sistema. apartir do arquivo de configuração.
 source ~/.shmrc 1> /dev/null 2>&1
 
+
+# Setar Diretório cache e arquivos de configuração.
+if [[ $(id -u) == 0 ]]; then
+	DIR_CACHE_SHM="/var/cache/$__appname__"
+	DIR_CONFIG_SHM="/etc/$__appname__"
+	PATH_BASH_LIBS='/usr/local/lib/bash'
+else
+	DIR_CACHE_SHM=~/.cache/"$__appname__"
+	DIR_CONFIG_SHM=~/.config/"$__appname__"
+	PATH_BASH_LIBS=~/.local/lib/bash
+fi
+
+FILE_MODULES_LIST="$DIR_CONFIG_SHM/modules.list"
+FILE_DB_APPS="$DIR_CONFIG_SHM/installed-apps.list"
+
 # Setar diretório para importar os módulos.
 if [[ -d "$dir_of_project/libs" ]]; then
 	__dir_bash_libs__="$dir_of_project/libs" # Importar do diretório deste projeto.
@@ -48,6 +64,7 @@ fi
 	show_import_erro "Diretório para importação de módulos não encontrado."
 	exit 1
 }
+
 
 # Módulos em bash necessários para o funcionamento deste programa.
 readonly RequerimentsList=(
@@ -83,22 +100,98 @@ readonly TEMPORARY_FILE=$(mktemp -u)
 readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
 readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 
-readonly URL_REPO_LIBS_MASTER='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
-readonly URL_MODULES_LIST='https://raw.github.com/Brunopvh/bash-libs/main/libs/modules.list'
-readonly URL_SHM='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
+readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
+readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
+readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
 
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
+readonly URL_MODULES_LIST="$URL_RAW_REPO_DEVELOPMENT/libs/modules.list"
+readonly URL_SHM="$URL_RAW_REPO_DEVELOPMENT/shm.sh"
+
+function usage()
+{
+cat <<EOF
+    Use: $__appname__ [opções] [argumentos]
+         $__appname__ [agumento]
+
+        Opções: 
+               -h|--help              Mostra ajuda e sai.
+               -c|--configure         Configura este programa para primeiro uso no sistema.
+               -u|--self-update       Atualiza este programa para ultima versão disponível no github.
+               -U|--upgrade           Instala a ultima versão de um módulo mesmo que esta ja exista no sistema
+                                      essa opção deve ser usada com a opção --install.
+                                      EX: $__appname__ --upgrade --install requests
+
+               -l|--list [Argumento]    Se não for passado nehum arguento, mostra os módulos disponíveis
+                                        para instalação, se receber o argumento [installed], mostra os módulos
+                                        instalados no sistema.
+                                          EX: $__appname__ --list
+                                              $__appname__ --list installed
+
+
+               -i|--install [módulo]    Instala um ou mais módulos.
+                                          EX: $__appname__ --install pkgmanager
+
+               -r|--remove [módulo]     Remove um ou mais módulos.
+
+               --info [módulo]          Mostra informações de um ou mais módulos.
+                                         EX: $__appname__ --info print_text platform
+
+        Argumentos:
+                  up|update         Atualiza a lista de módulos disponíveis para instalação      
+
+
+EOF
+}
 
 function create_dirs
 {
 	mkdir -p "$TEMPORARY_DIR"
 	mkdir -p "$DIR_DOWNLOAD"
 	mkdir -p "$DIR_UNPACK"
+	mkdir -p "$DIR_CONFIG_SHM"
+	mkdir -p "$DIR_CACHE_SHM"
+	mkdir -p "$PATH_BASH_LIBS"
 }
 
 function clean_temp_files()
 {
 	rm -rf "$TEMPORARY_DIR" 2> /dev/null
 	rm -rf "$TEMPORARY_FILE" 2> /dev/null
+}
+
+
+function exists_file()
+{
+	# Verificar a existencia de arquivos
+	# $1 = Arquivo a verificar.
+	# Também suporta uma mais de um arquivo a ser testado.
+	# exists_file arquivo1 arquivo2 arquivo3 ...
+	# se um arquivo informado como parâmetro não existir, esta função irá retornar 1.
+
+	[[ -z $1 ]] && return 1
+	export STATUS_OUTPUT=0
+
+	while [[ $1 ]]; do
+		if [[ ! -f "$1" ]]; then
+			export STATUS_OUTPUT=1
+			echo -e "ERRO ... o arquivo não existe $1"
+			#sleep 0.05
+		fi
+		shift
+	done
+
+	[[ "$STATUS_OUTPUT" == 0 ]] && return 0
+	return 1
+}
+
+function install_file_modules_list()
+{
+	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
+	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null &
+	loop_pid "$!" "Baixando a lista de módulo arguarde"
+	export Upgrade='True'
+	__copy_files "$TEMPORARY_FILE" "$FILE_MODULES_LIST" 
 }
 
 function __copy_files()
@@ -122,8 +215,20 @@ function __copy_files()
 
 function install_modules()
 {
+	print_line
+	echo -e "${CGreen}I${CReset}nstalando os seguintes módulos/libs:\n"
+	n=0
+	for PKG in "${@}"; do
+		[[ "$n" == 2 ]] && n=0 && echo
+		printf "%-20s" "$PKG "
+		n="$(($n + 1))"
+	done
+	echo
+
 	echo -e "Baixando arquivos arguarde"
-	download "$URL_REPO_LIBS_MASTER" "$DIR_DOWNLOAD"/bash-libs.tar.gz 1> /dev/null || return 1
+	download "$URL_TARFILE_LIBS" "$DIR_DOWNLOAD"/bash-libs.tar.gz 1> /dev/null || return 1
+	[[ "$DownloadOnly" == 'True' ]] && print_info "Feito somente download!" && return 0
+	
 	unpack_archive "$DIR_DOWNLOAD"/bash-libs.tar.gz "$DIR_UNPACK" || return 1
 	cd $DIR_UNPACK
 	mv $(ls -d bash-*) bash-libs
@@ -131,52 +236,103 @@ function install_modules()
 
 	while [[ $1 ]]; do
 		local string="$1"
-		[[ "${string[@]:0:1}" == '-' ]] && {
+		[[ "${module[@]:0:1}" == '-' ]] && {
 			# Recebido uma opção ao inves de um argumento.
-			print_erro "(install_modules) argumento inválido detectado ... $string"
+			print_erro "(install_modules) argumento inválido detectado ... $module"
 			sleep 0.5
 			return 1
 			break
 		}
 
-		case "$string" in
-			os) __copy_files "os.sh" "$PATH_BASH_LIBS"/os.sh;;
-			requests) __copy_files "requests.sh" "$PATH_BASH_LIBS"/requests.sh;;
-			*) print_erro "Módulo indisponível para instalação $string"; sleep 0.5;;
-		esac
+		if [[ -f "${module}.sh" ]]; then
+			__copy_files "${module}.sh" "$PATH_BASH_LIBS/${module}.sh" || { return 1; break; }
+			grep -q ^"export readonly $module=$PATH_BASH_LIBS/${module}.sh" ~/.shmrc || {
+					echo -e "export readonly $module=$PATH_BASH_LIBS/${module}.sh" >> ~/.shmrc
+				}
+		else
+			print_erro "Módulo indisponível para instalação $string"
+			sleep 0.5
+		fi
 		shift
+	done
+	echo 'Feito!'
+}
+
+function __configure__()
+{
+	install_file_modules_list || return 1
+	config_bashrc
+	config_zshrc	
+	touch ~/.shmrc
+	grep -q ^"export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" ~/.shmrc || {
+		echo -e "export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
+	}
+
+	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
+}
+
+function show_info_modules()
+{
+	[[ -z $1 ]] && print_erro 'Falta um ou mais argumentos.' && exit 1
+	print_line '*'
+	for MOD in "${@}"; do
+		if grep -q ^"$MOD" "$FILE_MODULES_LIST"; then
+			grep ^"$MOD" "$FILE_MODULES_LIST"
+		else
+			print_erro "módulo não encontrado ... $MOD"
+		fi
 	done
 }
 
-function argument_parse()
+function get_installed_modules()
 {
-	local num=0
-	while [[ $1 ]]; do
-		case "$1" in
-			-y|--yes) AssumeYes='True';;
-			-d|--downloadonly) DownloadOnly='True';;
-			-U|--upgrade) Upgrade='True';;
-			*) ArgumentsList["$num"]="$1"; num=$(($num + 1));;
-		esac
-		shift
-	done
+	# find "$PATH_BASH_LIBS" -name '*.sh'
+	echo '' > "$FILE_DB_APPS"
+	find "$PATH_BASH_LIBS" -name '*.sh' | sed 's|.*/||g;s|.sh||g' >> "$FILE_DB_APPS"
+}
+
+function list_modules()
+{
+	if [[ -z $1 ]]; then
+		cut -d '=' -f 1 "$FILE_MODULES_LIST"
+	elif [[ "$1" == 'installed' ]]; then
+		find "$PATH_BASH_LIBS" -name '*.sh'	
+	fi
 }
 
 function main_shm()
 {
 	create_dirs
-	argument_parse "$@"
 
-	local num=0
-	for ARG in "${ArgumentsList[@]}"; do
-
+	for ARG in "${@}"; do
 		case "$ARG" in
-			-i|--install)
-					num=$(($num + 1))
-					install_modules "${ArgumentsList[@]:$num}"
-					;;	
+			-y|--yes) AssumeYes='True';;
+			-d|--downloadonly) DownloadOnly='True';;
+			-U|--upgrade) Upgrade='True';;
+			-h|--help) usage; return 0; break;;
 		esac
-		num=$(($num + 1))
+	done
+
+	[[ -f $FILE_MODULES_LIST ]] || install_file_modules_list
+
+	while [[ $1 ]]; do
+		case "$1" in
+			-U|--upgrade) ;;
+			-y|--yes) ;;
+			-d|--downloadonly) ;;
+			-h|--help) ;;
+			-c|--configure) __configure__; return "$?"; break;;
+			-i|--install) shift; install_modules "$@"; return "$?"; break;;
+			-r|--remove) shift; remove_modules "$@";;
+			-l|--list) shift; list_modules "$@";;
+
+			--info) shift; show_info_modules "$@";;
+			
+			
+			up|update) install_file_modules_list;;
+			*) print_erro "argumento invalido detectado."; return 1; break;;
+		esac
+		shift
 	done
 
 	clean_temp_files

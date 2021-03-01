@@ -10,33 +10,40 @@
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-02-27'
+version='2021-02-28'
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
-	DESTINATION_DIR='/usr/local/bin'
+	DIR_OPTIONAL='/opt/shell-package-manager'
+	DIR_BIN='/usr/local/bin'
 	PATH_BASH_LIBS='/usr/local/lib/bash'
 else
-	DESTINATION_DIR=~/.local/bin
+	DIR_OPTIONAL=~/.local/share/'shell-package-manager'
+	DIR_BIN=~/.local/bin
 	PATH_BASH_LIBS=~/.local/lib/bash
 fi
 
-[[ ! -d $DESTINATION_DIR ]] && mkdir -p $DESTINATION_DIR
-[[ ! -d $PATH_BASH_LIBS ]] && mkdir -p $PATH_BASH_LIBS
+readonly TEMPORARY_DIR=$(mktemp --directory)
+readonly TEMPORARY_FILE=$(mktemp -u)
+readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
+readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 
-DESTINATION_SCRIPT="$DESTINATION_DIR"/shm
-URL_REPO_LIBS_MAIN='https://raw.github.com/Brunopvh/bash-libs/main/shm.sh'
-TEMPORARY_DIR=$(mktemp -d)
-DIR_UNPACK="$TEMPORARY_DIR/unpack"
-DIR_DOWNLOAD="$TEMPORARY_DIR/download" 
-PKG_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
-URL_REPO_LIBS_MAIN='https://github.com/Brunopvh/bash-libs/archive/main.tar.gz'
+readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
+readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
+readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
+
+readonly FILE_TAR_LISB="$DIR_DOWNLOAD/libs.tar.gz"
 
 mkdir -p $DIR_UNPACK
 mkdir -p $DIR_DOWNLOAD
+mkdir -p $DIR_OPTIONAL
+mkdir -p $DIR_OPTIONAL/libs
+mkdir -p $PATH_BASH_LIBS
+mkdir -p $DIR_BIN
 
-readonly _script=$(readlink -f "$0")
-readonly dir_of_project=$(dirname "$_script")
+readonly __script__=$(readlink -f "$0")
+readonly dir_of_project=$(dirname "$__script__")
 
 if [[ -x $(command -v aria2c) ]]; then
 	clientDownloader='aria2c'
@@ -73,36 +80,115 @@ function exists_file()
 	return 1
 }
 
+
+function __ping__()
+{
+	[[ ! -x $(command -v ping) ]] && {
+		echo -e "ERRO ... " "(__ping__) ... comando ping não instalado."
+		return 1
+	}
+
+	if ping -c 1 8.8.8.8 1> /dev/null 2>&1; then
+		return 0
+	else
+		echo -e "ERRO ... " "você está off-line"
+		return 1
+	fi
+}
+
+function download()
+{
+	# Baixa arquivos da internet.
+	# Requer um gerenciador de downloads wget, curl, aria2
+	# 
+	# https://curl.se/
+	# https://www.gnu.org/software/wget/
+	# https://aria2.github.io/manual/pt/html/README.html
+	# 
+	# $1 = URL
+	# $2 = Output File - (Opcional)
+	#
+
+	[[ -f "$2" ]] && {
+		echo -e "Arquivo encontrado ...$2"
+		return 0
+	}
+
+	local url="$1"
+	local path_file="$2"
+
+	if [[ -z "$clientDownloader" ]]; then
+		echo -e "ERRO ... " "(download) Instale curl|wget|aria2c para prosseguir."
+		sleep 0.1
+		return 1
+	fi
+
+	__ping__ || return 1
+	echo -e "Conectando ... $url"
+	if [[ ! -z $path_file ]]; then
+		case "$clientDownloader" in 
+			aria2c) 
+					aria2c -c "$url" -d "$(dirname $path_file)" -o "$(basename $path_file)" 
+					;;
+			curl)
+				curl -C - -S -L -o "$path_file" "$url"
+					;;
+			wget)
+				wget -c "$url" -O "$path_file"
+					;;
+		esac
+	else
+		case "$clientDownloader" in 
+			aria2c) 
+					aria2c -c "$url"
+					;;
+			curl)
+					curl -C - -S -L -O "$url"
+					;;
+			wget)
+				wget -c "$url"
+					;;
+		esac
+	fi
+
+	[[ $? == 0 ]] && echo 'OK' && return 0
+	echo -e "ERRO ... " '(download)'
+}
+
+function install_shell_package_manager()
+{
+	echo -ne "Instalando libs ... "
+	cp -r -u ./libs/os.sh "$DIR_OPTIONAL"/libs/os.sh 1> /dev/null
+	cp -r -u ./libs/utils.sh "$DIR_OPTIONAL"/libs/utils.sh 1> /dev/null
+	cp -r -u ./libs/requests.sh "$DIR_OPTIONAL"/libs/requests.sh 1> /dev/null
+	cp -r -u ./libs/print_text.sh "$DIR_OPTIONAL"/libs/print_text.sh 1> /dev/null
+	cp -r -u ./libs/config_path.sh "$DIR_OPTIONAL"/libs/config_path.sh 1> /dev/null
+	[[ $? == 0 ]] || return 1
+	echo 'OK'
+
+	echo -ne "Instalando shm ... em $DIR_OPTIONAL "
+	cp -r -u shm.sh "$DIR_OPTIONAL"/shm.sh
+	chmod a+x "$DIR_OPTIONAL"/shm.sh
+	ln -sf "$DIR_OPTIONAL"/shm.sh "$DIR_BIN"/shm
+	[[ $? == 0 ]] || return 1
+	echo 'OK'
+}
+
 function online_setup()
 {
 	# Baixar os arquivos do repositório main.
-	echo -ne "Baixando arquivos do repositório ... $URL_REPO_LIBS_MAIN "
-	case "$clientDownloader" in
-		aria2c) aria2c "$URL_REPO_LIBS_MAIN" -d $(dirname "$PKG_LIBS") -o $(basename "$PKG_LIBS") 1> /dev/null;;
-		wget) wget -q -O "$PKG_LIBS" "$URL_REPO_LIBS_MAIN";;
-		curl) curl -fsSL -o "$PKG_LIBS" "$URL_REPO_LIBS_MAIN";;
-	esac
-
-	[[ $? == 0 ]] || return 1
+	echo -ne "Baixando arquivos aguarde "
+	download "$FILE_TAR_LISB" "$URL_TARFILE_LIBS" 1> /dev/null || return 1
 	echo 'OK'
 
 	cd $DIR_DOWNLOAD
 	echo -ne "Descompactando ... "
-	tar -zxvf "$PKG_LIBS" -C "$DIR_UNPACK" 1> /dev/null || return 1
+	tar -zxvf "$FILE_TAR_LISB" -C "$DIR_UNPACK" 1> /dev/null || return 1
 	echo 'OK'
 	cd $DIR_UNPACK
 	mv $(ls -d bash*) bash-libs
 	cd bash-libs
-
-	echo -e "Instalando módulos"
-	cp -u ./libs/os.sh "$PATH_BASH_LIBS"/os.sh 1> /dev/null
-	cp -u ./libs/utils.sh "$PATH_BASH_LIBS"/utils.sh 1> /dev/null
-	cp -u ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
-	cp -u ./libs/print_text.sh "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null
-	cp -u ./libs/config_path.sh "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null
-	echo -e "Instalando ... $DESTINATION_SCRIPT"
-	cp -u shm.sh "$DESTINATION_SCRIPT" 1> /dev/null 
-	chmod +x "$DESTINATION_SCRIPT"
+	install_shell_package_manager
 }
 
 function offline_setup()
@@ -120,16 +206,7 @@ function offline_setup()
 
 	# Verificar a existência dos módulos/dependências locais.
 	exists_file ./libs/os.sh ./libs/requests.sh ./libs/utils.sh ./libs/print_text.sh ./libs/config_path.sh || return 1
-
-	echo -ne "Copiando arquivos ... "
-	cp ./libs/os.sh "$PATH_BASH_LIBS"/os.sh 1> /dev/null
-	cp ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
-	cp ./libs/utils.sh "$PATH_BASH_LIBS"/utils.sh 1> /dev/null
-	cp ./libs/print_text.sh "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null
-	cp ./libs/config_path.sh "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null
-	cp shm.sh "$DESTINATION_SCRIPT" 1> /dev/null
-	chmod +x "$DESTINATION_SCRIPT"
-	echo 'OK'
+	install_shell_package_manager
 }
 
 if [[ "$1" == 'install' ]]; then
@@ -139,14 +216,14 @@ else
 fi
 
 
-if [[ -x "$DESTINATION_SCRIPT" ]]; then
+if [[ -x "$DIR_BIN/shm" ]]; then
 	echo -e "Configurando"
-	"$DESTINATION_SCRIPT" --configure
+	"$DIR_BIN/shm" --configure
 	printf "Feito!\n"
 else
 	printf "Falha\n"
 	exit 1
 fi
 
-rm -rf "$TEMPORARY_DIR"
-
+rm -rf "$TEMPORARY_DIR" 2> /dev/null
+rm -rf "$TEMPORARY_FILE" 2> /dev/null

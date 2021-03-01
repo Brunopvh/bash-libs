@@ -75,7 +75,7 @@ fi
 function __ping__()
 {
 	[[ ! -x $(command -v ping) ]] && {
-		print_erro "(_ping) ... comando ping não instalado."
+		print_erro "(__ping__) ... comando ping não instalado."
 		return 1
 	}
 
@@ -131,7 +131,7 @@ function download()
 	fi
 
 	__ping__ || return 1
-	echo -e "Conectando $url"
+	echo -e "Conectando ... $url"
 	if [[ ! -z $path_file ]]; then
 		case "$clientDownloader" in 
 			aria2c) 
