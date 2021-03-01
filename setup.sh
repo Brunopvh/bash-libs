@@ -35,7 +35,7 @@ readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
 
 readonly FILE_TAR_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
 
-if [[ -d "$DIR_OPTIONAL" ]]; then
+if [[ -d "$DIR_OPTIONAL" && "$AssumeYes" != 'True' ]]; then
 	echo
 	echo -e "Existe uma versão do gerenciador de pacotes shm instalada em seu sistema"
 	read -p "Deseja substituir pela versão do github [s/N]?: " -n 1 -t 60 opt

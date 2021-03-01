@@ -300,6 +300,12 @@ function list_modules()
 	fi
 }
 
+function self_update()
+{
+	cd "$dir_of_project"
+	env AssumeYes='True' ./setup.sh
+}
+
 function main_shm()
 {
 	create_dirs
@@ -322,6 +328,7 @@ function main_shm()
 			-d|--downloadonly) ;;
 			-h|--help) ;;
 			-c|--configure) __configure__; return "$?"; break;;
+			-u|--self-update) self_update; break;;
 			-i|--install) shift; install_modules "$@"; return "$?"; break;;
 			-r|--remove) shift; remove_modules "$@";;
 			-l|--list) shift; list_modules "$@";;
