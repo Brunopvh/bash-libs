@@ -52,7 +52,7 @@ fi
 
 if [[ -f /etc/debian_version ]] && [[ -x $(command -v apt) ]]; then
 	BASE_DISTRO='debian'
-elif [[ -f /etc/fedora-release ]] && [[ -x $(commnad -v dnf) ]]; then
+elif [[ -f /etc/fedora-release ]] && [[ -x $(command -v dnf) ]]; then
 	BASE_DISTRO='fedora'
 else
 	BASE_DISTRO='None'
@@ -64,10 +64,6 @@ function set_version_codename()
 	if [[ "$file_release" ]] && [[ $(grep '^VERSION_CODENAME=' "$file_release") ]]; then
 		VERSION_CODENAME=$(grep -m 1 '^VERSION_CODENAME=' "$file_release" | sed 's/.*VERSION_CODENAME=//g')
 	fi
-
-	case "$VERSION_CODENAME" in
-		ulyana) export VERSION_CODENAME=ulyssa;;
-	esac
 }
 
 function show_platform_info()
