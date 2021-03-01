@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 
-export version_platform='20201-02-21'
+export version_platform='20201-02-28'
 export KERNEL_TYPE=$(uname -s)
 export OS_ARCH='None'
 export OS_ID='None'
@@ -49,10 +49,6 @@ if [[ "$file_release" ]]; then
 	OS_RELEASE=$(grep -m 1 '^VERSION=' "$file_release" | sed 's/.*VERSION=//g;s/\"//g;s/(//g;s/)//g;s/ //g')
 fi
 
-# Codename
-if [[ "$file_release" ]] && [[ $(grep '^VERSION_CODENAME=' "$file_release") ]]; then
-	VERSION_CODENAME=$(grep -m 1 '^VERSION_CODENAME=' "$file_release" | sed 's/.*VERSION_CODENAME=//g')
-fi
 
 if [[ -f /etc/debian_version ]] && [[ -x $(command -v apt) ]]; then
 	BASE_DISTRO='debian'
@@ -61,6 +57,19 @@ elif [[ -f /etc/fedora-release ]] && [[ -x $(commnad -v dnf) ]]; then
 else
 	BASE_DISTRO	='None'
 fi
+
+function set_version_codename()
+{	
+	# Codename
+	if [[ "$file_release" ]] && [[ $(grep '^VERSION_CODENAME=' "$file_release") ]]; then
+		VERSION_CODENAME=$(grep -m 1 '^VERSION_CODENAME=' "$file_release" | sed 's/.*VERSION_CODENAME=//g')
+	fi
+
+	case "$VERSION_CODENAME" in
+		ulyana) export VERSION_CODENAME=ulyssa;;
+	esac
+}
+
 function show_platform_info()
 {
 	# Exibir informações básicas dos sitema operacional no stdout
@@ -74,4 +83,4 @@ function show_platform_info()
 }
 
 
-
+set_version_codename
