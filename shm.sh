@@ -316,6 +316,7 @@ function main_shm()
 			-d|--downloadonly) DownloadOnly='True';;
 			-U|--upgrade) Upgrade='True';;
 			-h|--help) usage; return 0; break;;
+			-v|--version) echo -e "$__version__"; return 0; break;;
 		esac
 	done
 
@@ -326,6 +327,7 @@ function main_shm()
 			-U|--upgrade) ;;
 			-y|--yes) ;;
 			-d|--downloadonly) ;;
+			-v|--version) ;;
 			-h|--help) ;;
 			-c|--configure) __configure__; return "$?"; break;;
 			-u|--self-update) self_update; break;;
