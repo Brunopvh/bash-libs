@@ -235,7 +235,7 @@ function install_modules()
 	cd bash-libs/libs
 
 	while [[ $1 ]]; do
-		local string="$1"
+		local module="$1"
 		[[ "${module[@]:0:1}" == '-' ]] && {
 			# Recebido uma opção ao inves de um argumento.
 			print_erro "(install_modules) argumento inválido detectado ... $module"
