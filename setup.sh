@@ -33,7 +33,15 @@ readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/dev
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
 readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
 
-readonly FILE_TAR_LISB="$DIR_DOWNLOAD/libs.tar.gz"
+readonly FILE_TAR_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
+
+if [[ -d "$DIR_OPTIONAL" ]]; then
+	echo
+	echo -e "Existe uma versão do gerenciador de pacotes shm instalada em seu sistema"
+	read -p "Deseja substituir pela versão do github [s/N]?: " -n 1 -t 60 opt
+	echo
+	[[ "${opt,,}" == 's' ]] || exit 1
+fi
 
 mkdir -p $DIR_UNPACK
 mkdir -p $DIR_DOWNLOAD
@@ -178,12 +186,12 @@ function online_setup()
 {
 	# Baixar os arquivos do repositório main.
 	echo -ne "Baixando arquivos aguarde "
-	download "$FILE_TAR_LISB" "$URL_TARFILE_LIBS" 1> /dev/null || return 1
+	download "$URL_TARFILE_LIBS" "$FILE_TAR_LIBS" 1> /dev/null || return 1
 	echo 'OK'
 
 	cd $DIR_DOWNLOAD
 	echo -ne "Descompactando ... "
-	tar -zxvf "$FILE_TAR_LISB" -C "$DIR_UNPACK" 1> /dev/null || return 1
+	tar -zxvf "$FILE_TAR_LIBS" -C "$DIR_UNPACK" 1> /dev/null || return 1
 	echo 'OK'
 	cd $DIR_UNPACK
 	mv $(ls -d bash*) bash-libs
