@@ -31,7 +31,7 @@ readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
 readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
-readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/main.tar.gz"
 
 readonly FILE_TAR_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
 
