@@ -171,6 +171,7 @@ function install_shell_package_manager()
 	cp -r -u ./libs/requests.sh "$DIR_OPTIONAL"/libs/requests.sh 1> /dev/null
 	cp -r -u ./libs/print_text.sh "$DIR_OPTIONAL"/libs/print_text.sh 1> /dev/null
 	cp -r -u ./libs/config_path.sh "$DIR_OPTIONAL"/libs/config_path.sh 1> /dev/null
+	cp -r -u ./setup.sh "$DIR_OPTIONAL"/setup.sh 1> /dev/null
 	[[ $? == 0 ]] || return 1
 	echo 'OK'
 
