@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 
-export version_platform='20201-02-28'
+export version_platform='20201-03-01'
 export KERNEL_TYPE=$(uname -s)
 export OS_ARCH='None'
 export OS_ID='None'
@@ -55,7 +55,7 @@ if [[ -f /etc/debian_version ]] && [[ -x $(command -v apt) ]]; then
 elif [[ -f /etc/fedora-release ]] && [[ -x $(commnad -v dnf) ]]; then
 	BASE_DISTRO='fedora'
 else
-	BASE_DISTRO	='None'
+	BASE_DISTRO='None'
 fi
 
 function set_version_codename()
