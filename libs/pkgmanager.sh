@@ -25,7 +25,7 @@ function show_import_erro()
 }
 
 # print_text
-[[ $importedecho -e_text != 'True' ]] && {
+[[ $imported_print_text != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
