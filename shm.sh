@@ -2,7 +2,7 @@
 #
 #
 
-readonly __version__='2021-02-28'
+readonly __version__='2021-03-02'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -104,8 +104,8 @@ readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
 readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
 
-readonly URL_TARFILE_LIBS="$URL_ARCHIVE/main.tar.gz"
-readonly URL_MODULES_LIST="$URL_RAW_REPO_MAIN/libs/modules.list"
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/development.tar.gz"
+readonly URL_MODULES_LIST="$URL_RAW_REPO_DEVELOPMENT/libs/modules.list"
 readonly URL_SHM="$URL_RAW_REPO_DEVELOPMENT/shm.sh"
 
 function usage()
