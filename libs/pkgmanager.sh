@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-02-21'
+version_pkgmanager='2021-03-02'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
@@ -25,7 +25,7 @@ function show_import_erro()
 }
 
 # print_text
-[[ $imported_print_text != 'True' ]] && {
+[[ $importedecho -e_text != 'True' ]] && {
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
@@ -233,7 +233,7 @@ _BROKE()
 
 _RPM()
 {
-	_print "Executando ... sudo rpm $@"
+	echo -e "Executando ... sudo rpm $@"
 	if sudo rpm "$@"; then
 		return 0
 	else
@@ -343,7 +343,7 @@ _PACMAN()
 		sleep 0.2
 	done
 
-	_print "Executando ... sudo pacman $@"
+	echo -e "Executando ... sudo pacman $@"
 	if sudo pacman "$@"; then
 		return 0
 	else
@@ -358,7 +358,7 @@ _PKG()
 	Pid_Pkg_Install=$(ps aux | grep 'root.*pkg' | egrep -m 1 '(install|update)' | awk '{print $2}')
 	[[ ! -z $Pid_Pkg_Install ]] && wait_pid "$Pid_Pkg_Install"
 
-	_print "Executando ... sudo pkg $@"
+	echo -e "Executando ... sudo pkg $@"
 	if sudo pkg "$@"; then
 		return 0
 	else

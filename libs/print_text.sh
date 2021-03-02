@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-version_print_text='2021-02-20'
-imported_print_text='True'
+versionecho -e_text='2021-02-20'
+importedecho -e_text='True'
 
 #=============================================================#
 # Cores.
