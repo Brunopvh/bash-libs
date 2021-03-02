@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-02-21'
+version_pkgmanager='2021-03-02'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
@@ -233,7 +233,7 @@ _BROKE()
 
 _RPM()
 {
-	_print "Executando ... sudo rpm $@"
+	echo -e "Executando ... sudo rpm $@"
 	if sudo rpm "$@"; then
 		return 0
 	else
@@ -343,7 +343,7 @@ _PACMAN()
 		sleep 0.2
 	done
 
-	_print "Executando ... sudo pacman $@"
+	echo -e "Executando ... sudo pacman $@"
 	if sudo pacman "$@"; then
 		return 0
 	else
@@ -358,7 +358,7 @@ _PKG()
 	Pid_Pkg_Install=$(ps aux | grep 'root.*pkg' | egrep -m 1 '(install|update)' | awk '{print $2}')
 	[[ ! -z $Pid_Pkg_Install ]] && wait_pid "$Pid_Pkg_Install"
 
-	_print "Executando ... sudo pkg $@"
+	echo -e "Executando ... sudo pkg $@"
 	if sudo pkg "$@"; then
 		return 0
 	else

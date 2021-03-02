@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-03-01'
+version_files_programs='2021-02-20'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -18,10 +18,8 @@ function show_import_erro()
 		echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	elif [[ -x $(command -v wget) ]]; then
 		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-	elif [[ -x $(command -v aria2c) ]]; then
-		echo -e "Execute ... aria2c https://raw.github.com/Brunopvh/bash-libs/main/setup.sh -o setup.sh; bash setup.sh; rm setup.sh"
 	fi
-	sleep 2
+	sleep 3
 }
 
 
