@@ -14,6 +14,9 @@ Use a ferramenta curl ou wget para executar o script que instala o gerenciador d
 Observação: Você também pode instalar o script na sua HOME usando o mesmo comando abaixo sem o 'sudo' ou 'root'.
 
  sudo sh -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
+ 
+ OU
+ 
  sudo sh -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 
 --------------------------------------------------
@@ -25,18 +28,22 @@ Observação: Você também pode instalar o script na sua HOME usando o mesmo co
    
    $ command -v shm -> se este comando não retornar o caminho do executável voĉe deve executar o seguinte comando
    $ ~/.local/bin/shm --configure -> Em seguida reinicie o shell/terminal ou encerre a sessão e faça login novamente
-   para que o arquivo ~/.bashrc seja carregado novamente.
+   para que o arquivo ~/.bashrc seja carregado.
    
    Verifique novamente a saída do comando abaixo:
    $ command -v shm
   
    
-Destino da instalação para o root '/usr/local/bin'
+Destino da instalação para o root /usr/local/bin/shm
 Destino para instalação na HOME: ~/.local/bin/shm 
 
  PRONTO agora você pode usar o script para instalar os módulos disponíveis no
  github. 
- $ shm --install <módulo> OU
+ 
+ $ shm --install <módulo> 
+ 
+ OU
+ 
  $ sudo shm --install <módulo>
 
  $ shm --list => Exibe os módulos disponíveis
