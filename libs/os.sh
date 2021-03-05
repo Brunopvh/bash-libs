@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_os='2021-02-21'
+version_os='2021-03-05'
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
 #
@@ -100,8 +100,10 @@ function __rmdir__()
 	# o comando de remoção será com 'sudo'.
 	[[ -z $1 ]] && return 1
 
-	local msg="Deseja ${CRed}deletar${CReset} os seguintes arquivos/diretórios? : $@\n"
-	question "$msg" || return 1
+	echo -e "Deseja ${CRed}deletar${CReset} os seguintes arquivos/diretórios?: "
+	for _dir in "${@}"; do echo -e "$_dir"; done
+	
+	question "" || return 1
 
 	while [[ $1 ]]; do		
 		cd $(dirname "$1")
