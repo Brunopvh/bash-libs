@@ -2,7 +2,7 @@
 #
 #
 
-readonly __version__='2021-02-28'
+readonly __version__='2021-03-06'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
