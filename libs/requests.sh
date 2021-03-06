@@ -173,18 +173,22 @@ gitclone()
 		return 1
 	}
 
-	[[ -z $1 ]] && {
-		red "(gitclone) use: gitclone <repo.git>"
+	[[ -z $2 ]] && {
+		red "(gitclone) use: gitclone <repo.git> <output-dir>"
 		return 1
 	}
 
-	if [[ $2 ]] && [[ ! -d "$2" ]]; then
-		sred "O diretório não existe ... $2"
+	if [[ ! -d "$2" ]]; then
+		sred "(gitclone) O diretório não existe ... $2"
+		sred "(gitclone) saindo com status 1."
+		sleep 1
 		return 1
 	fi
 
-	if [[ $2 ]] && [[ ! -w "$2" ]]; then
-		sred "Você não tem permissão de escrita em ... $2"
+	if [[ ! -w "$2" ]]; then
+		sred "(gitclone) Você não tem permissão de escrita em ... $2"
+		sred "(gitclone) saindo com status 1"
+		sleep 1
 		return 1
 	fi
 
