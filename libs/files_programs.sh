@@ -174,7 +174,7 @@ destinationFilesYoutubeDlGuiUser=(
 
 declare -A destinationFilesYoutubeDlQt
 destinationFilesYoutubeDlQt=(
-	[dir]"$DIR_OPTIONAL"/youtube-dl-qt
+	[dir]="$DIR_OPTIONAL"/youtube-dl-qt
 	[icon]="$DIR_ICONS"/youtube-dl-icon.png
 	[file_desktop]="$DIR_APPLICATIONS/youtube-dl-qt.desktop"
 	[link]="$DIR_BIN"/youtube-dl-qt
