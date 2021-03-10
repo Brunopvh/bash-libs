@@ -161,6 +161,7 @@ function download()
 
 	[[ $? == 0 ]] && echo 'OK' && return 0
 	echo -e "ERRO ... " '(download)'
+	return 1
 }
 
 function install_shell_package_manager()
@@ -187,7 +188,7 @@ function online_setup()
 {
 	# Baixar os arquivos do repositório main.
 	echo -ne "Baixando arquivos aguarde "
-	download "$URL_TARFILE_LIBS" "$FILE_TAR_LIBS" 1> /dev/null || return 1
+	download "$URL_TARFILE_LIBS" "$FILE_TAR_LIBS" 1> /dev/null 2>&1 || return 1
 	echo 'OK'
 
 	cd $DIR_DOWNLOAD

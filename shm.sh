@@ -188,7 +188,7 @@ function exists_file()
 function install_file_modules_list()
 {
 	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
-	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null &
+	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null 2>&1 &
 	loop_pid "$!" "Baixando a lista de módulo arguarde"
 	export Upgrade='True'
 	__copy_files "$TEMPORARY_FILE" "$FILE_MODULES_LIST" 
@@ -226,7 +226,7 @@ function install_modules()
 	echo
 
 	echo -e "Baixando arquivos arguarde"
-	download "$URL_TARFILE_LIBS" "$DIR_DOWNLOAD"/bash-libs.tar.gz 1> /dev/null || return 1
+	download "$URL_TARFILE_LIBS" "$DIR_DOWNLOAD"/bash-libs.tar.gz 1> /dev/null 2>&1 || return 1
 	[[ "$DownloadOnly" == 'True' ]] && print_info "Feito somente download!" && return 0
 	
 	unpack_archive "$DIR_DOWNLOAD"/bash-libs.tar.gz "$DIR_UNPACK" || return 1
