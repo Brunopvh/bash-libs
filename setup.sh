@@ -10,7 +10,7 @@
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-02-28'
+version='2021-03-09'
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
