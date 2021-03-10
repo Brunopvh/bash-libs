@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-02-20'
+version_files_programs='2021-03-09'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -129,6 +129,11 @@ destinationFilesLibreofficeAppimage=(
 #=============================================================#
 # Internet
 #=============================================================#
+declare -A destinationFilesFreeTube
+destinationFilesFreeTube=(
+	[file_desktop]="$DIR_APPLICATIONS/freetube.desktop"
+	[bin]="$DIR_BIN/freetube"
+)
 
 declare -A destinationFilesTelegram
 destinationFilesTelegram=(
