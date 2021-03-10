@@ -158,8 +158,9 @@ function download()
 		esac
 	fi
 
-	[[ $? == 0 ]] && echo 'OK' && return 0
+	[[ $? == 0 ]] && return 0
 	print_erro '(download)'
+	return 1
 }
 
 
