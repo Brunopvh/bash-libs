@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-03-02'
+version_pkgmanager='2021-03-11'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
@@ -149,7 +149,7 @@ apt_key_add()
 		local TEMP_FILE_KEY=$(mktemp -u) # Não cria o arquivo.
 
 		printf "Adicionando key apartir do url ... $1 "
-		download "$1" "$TEMP_FILE_KEY" 1> /dev/null || return 1
+		download "$1" "$TEMP_FILE_KEY" 1> /dev/null 2>&1 || return 1
 
 		# Adicionar key
 		if [[ $? == 0 ]]; then
@@ -269,7 +269,7 @@ _rpm_key_add()
 		# Obter key apartir do url $1.
 		local TEMP_FILE_KEY="$(mktemp -u)"
 		printf "Adicionando key apartir do url ... $1 "
-		download "$1" "$TEMP_FILE_KEY" 1> /dev/null || return 1 
+		download "$1" "$TEMP_FILE_KEY" 1> /dev/null 2>&1 || return 1 
 
 		if [[ $? == 0 ]]; then
 			sudo rpm --import "$TEMP_FILE_KEY" || return 1
@@ -307,7 +307,7 @@ _addrepo_in_fedora()
 	}
 	
 	print_info "adicionando repositório em ... $file_repo\n"
-	download "$url_repo" "$temp_file_repo" 1> /dev/null || return 1
+	download "$url_repo" "$temp_file_repo" 1> /dev/null 2>&1 || return 1
 	__sudo__ mv "$temp_file_repo" "$file_repo" 
 	__sudo__ chown root:root "$file_repo"
 	__sudo__ chmod 644 "$file_repo"
