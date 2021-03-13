@@ -2,7 +2,7 @@
 #
 #
 
-readonly __version__='2021-03-09'
+readonly __version__='2021-03-13'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -35,20 +35,28 @@ function show_import_erro()
 	sleep 1
 }
 
-# Setar o diretório das libs no sistema. apartir do arquivo de configuração.
-source ~/.shmrc 1> /dev/null 2>&1
-
-
 # Setar Diretório cache e arquivos de configuração.
 if [[ $(id -u) == 0 ]]; then
 	DIR_CACHE_SHM="/var/cache/$__appname__"
 	DIR_CONFIG_SHM="/etc/$__appname__"
 	PATH_BASH_LIBS='/usr/local/lib/bash'
+	if [[ -f /etc/bashrc ]]; then
+		readonly __file_config__='/etc/bashrc'
+	elif [[ -f /etc/bash.bash.bashrc ]]; then
+		readonly __file_config__='/etc/bash.bashrc'
+	else
+		readonly __file_config__=~/.bashrc
+	fi
 else
 	DIR_CACHE_SHM=~/.cache/"$__appname__"
 	DIR_CONFIG_SHM=~/.config/"$__appname__"
 	PATH_BASH_LIBS=~/.local/lib/bash
+	readonly __file_config__=~/.bashrc
 fi
+
+# Setar o diretório das libs no sistema. apartir do arquivo de configuração.
+source "$__file_config__" 1> /dev/null 2>&1
+source ~/.shmrc 1> /dev/null 2>&1
 
 FILE_MODULES_LIST="$DIR_CONFIG_SHM/modules.list"
 FILE_DB_APPS="$DIR_CONFIG_SHM/installed-apps.list"
@@ -189,7 +197,7 @@ function install_file_modules_list()
 {
 	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
 	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null 2>&1 &
-	loop_pid "$!" "Baixando a lista de módulo arguarde"
+	loop_pid "$!" "Baixando a lista de módulos arguarde"
 	export Upgrade='True'
 	__copy_files "$TEMPORARY_FILE" "$FILE_MODULES_LIST" 
 }
@@ -264,8 +272,16 @@ function __configure__()
 	config_bashrc
 	config_zshrc	
 	touch ~/.shmrc
-	grep -q ^"export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" ~/.shmrc || {
-		echo -e "export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
+	touch "$__file_config__"
+
+	# bashrc
+	grep -q ^"export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" "$__file_config__" || {
+		echo -e "export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" >> "$__file_config__"
+	}
+
+	# ~/.shmrc
+	grep -q ^"source $__file_config__" ~/.shmrc || {
+		echo -e "source $__file_config__" >> ~/.shmrc
 	}
 
 	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG

@@ -117,7 +117,7 @@ function download()
 	#
 
 	[[ -f "$2" ]] && {
-		blue "Arquivo encontrado ...$2"
+		blue "Arquivo encontrado ... $2"
 		return 0
 	}
 

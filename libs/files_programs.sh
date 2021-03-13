@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-03-09'
+version_files_programs='2021-03-13'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -63,6 +63,14 @@ destinationFilesAndroidStudio=(
 	[png]="$DIR_ICONS/studio.png"
 	[link]="$DIR_BIN/studio"
 	[dir]="$DIR_OPTIONAL/android-studio"
+	)
+
+declare -A destinationFilesBrModelo
+destinationFilesBrModelo=(
+	[file_desktop]="$DIR_APPLICATIONS/brmodelo.desktop"
+	[script]="$DIR_BIN/brmodelo"
+	[png]="$DIR_ICONS/brmodelo.png"
+	[file_jar]="$DIR_OPTIONAL/brmodelo.jar"
 	)
 
 declare -A destinationFilesIdeaic
