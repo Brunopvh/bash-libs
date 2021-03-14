@@ -120,31 +120,30 @@ cat <<EOF
     Use: $__appname__ [opções] [argumentos]
          $__appname__ [agumento]
 
-        Opções: 
-               -h|--help              Mostra ajuda e sai.
-               -c|--configure         Configura este programa para primeiro uso no sistema.
-               -u|--self-update       Atualiza este programa para ultima versão disponível no github.
-               -U|--upgrade           Instala a ultima versão de um módulo mesmo que esta ja exista no sistema
-                                      essa opção deve ser usada com a opção --install.
-                                      EX: $__appname__ --upgrade --install requests
+   Opções: 
+     -h|--help                Mostra ajuda e sai.
+     -c|--configure           Configura este programa para primeiro uso no sistema.
+     -u|--self-update         Atualiza este programa para ultima versão disponível no github.
+    
+     -U|--upgrade             Instala a ultima versão de um módulo mesmo que este ja exista no sistema
+                              essa opção deve ser usada com a opção --install.
+                              EX: $__appname__ --upgrade --install requests pkgmanager
+        
+     -l|--list [Argumento]    Se não for passado nehum arguento, mostra os módulos disponíveis para instalação 
+                              se receber o argumento [installed], mostra os módulos instalados para o seu usuário.
+                                EX: $__appname__ --list
+                                    $__appname__ --list installed
 
-               -l|--list [Argumento]    Se não for passado nehum arguento, mostra os módulos disponíveis
-                                        para instalação, se receber o argumento [installed], mostra os módulos
-                                        instalados no sistema.
-                                          EX: $__appname__ --list
-                                              $__appname__ --list installed
+     -i|--install [módulo]    Instala um ou mais módulos.
+                              EX: $__appname__ --install pkgmanager
 
+     -r|--remove [módulo]     Remove um ou mais módulos.
 
-               -i|--install [módulo]    Instala um ou mais módulos.
-                                          EX: $__appname__ --install pkgmanager
+     --info [módulo]          Mostra informações de um ou mais módulos.
+                              EX: $__appname__ --info print_text platform
 
-               -r|--remove [módulo]     Remove um ou mais módulos.
-
-               --info [módulo]          Mostra informações de um ou mais módulos.
-                                         EX: $__appname__ --info print_text platform
-
-        Argumentos:
-                  up|update         Atualiza a lista de módulos disponíveis para instalação      
+   Argumentos:
+     up|update                Atualiza a lista de módulos disponíveis para instalação      
 
 
 EOF
