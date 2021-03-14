@@ -194,7 +194,7 @@ function install_file_modules_list()
 {
 	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
 	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null 2>&1 &
-	loop_pid "$!" "Baixando a lista de módulos arguarde"
+	loop_pid "$!" "Baixando $URL_MODULES_LIST"
 	export Upgrade='True'
 	__copy_files "$TEMPORARY_FILE" "$FILE_MODULES_LIST" 
 }
