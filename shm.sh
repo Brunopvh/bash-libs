@@ -293,6 +293,7 @@ function __configure__()
 	}
 
 	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
+	sed -i "/export readonly PATH_BASH_LIBS/d" "$__bashrc_file__"
 }
 
 function show_info_modules()
