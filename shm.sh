@@ -2,7 +2,7 @@
 #
 #
 
-readonly __version__='2021-03-13'
+readonly __version__='2021-03-14'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -41,21 +41,19 @@ if [[ $(id -u) == 0 ]]; then
 	DIR_CONFIG_SHM="/etc/$__appname__"
 	PATH_BASH_LIBS='/usr/local/lib/bash'
 	if [[ -f /etc/bashrc ]]; then
-		readonly __file_config__='/etc/bashrc'
-	elif [[ -f /etc/bash.bash.bashrc ]]; then
-		readonly __file_config__='/etc/bash.bashrc'
+		readonly __bashrc_file__='/etc/bashrc'
 	else
-		readonly __file_config__=~/.bashrc
+		readonly __bashrc_file__='/etc/bash.bashrc'
 	fi
 else
 	DIR_CACHE_SHM=~/.cache/"$__appname__"
 	DIR_CONFIG_SHM=~/.config/"$__appname__"
 	PATH_BASH_LIBS=~/.local/lib/bash
-	readonly __file_config__=~/.bashrc
+	readonly __bashrc_file__=~/.bashrc
 fi
 
 # Setar o diretório das libs no sistema. apartir do arquivo de configuração.
-source "$__file_config__" 1> /dev/null 2>&1
+source "$__bashrc_file__" 1> /dev/null 2>&1
 source ~/.shmrc 1> /dev/null 2>&1
 
 FILE_MODULES_LIST="$DIR_CONFIG_SHM/modules.list"
@@ -272,16 +270,26 @@ function __configure__()
 	config_bashrc
 	config_zshrc	
 	touch ~/.shmrc
-	touch "$__file_config__"
+	touch "$__bashrc_file__"
+
+	# Criar backup do arquivo bashrc
+	__backup_bashrc="${__bashrc_file__}.bak"
+	if [[ -f "$__backup_bashrc" ]]; then
+		echo -e "Backup encontrado ... $__backup_bashrc"
+	else
+		echo -e "Criando backup ... $__backup_bashrc"
+		cp "$__bashrc_file__" "$__backup_bashrc"
+	fi
+	sleep 0.5
 
 	# bashrc
-	grep -q ^"export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" "$__file_config__" || {
-		echo -e "export readonly PATH_BASH_LIBS=$PATH_BASH_LIBS" >> "$__file_config__"
+	grep -q ^"export PATH_BASH_LIBS=$PATH_BASH_LIBS" "$__bashrc_file__" || {
+		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> "$__bashrc_file__"
 	}
 
 	# ~/.shmrc
-	grep -q ^"source $__file_config__" ~/.shmrc || {
-		echo -e "source $__file_config__" >> ~/.shmrc
+	grep -q ^"source $__bashrc_file__" ~/.shmrc || {
+		echo -e "source $__bashrc_file__" >> ~/.shmrc
 	}
 
 	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
