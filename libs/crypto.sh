@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 #
-version_crypto='2021-02-21'
+version_crypto='2021-03-15'
 # - REQUERIMET = print_text
 # - REQUERIMET = requests
 #
@@ -89,7 +89,7 @@ gpg_import()
 		
 		local TempFileAsc="$(mktemp)_gpg_import"
 		printf "Importando key apartir da url ... $1 "
-		download "$1" "$TempFileAsc" 1> /dev/null || return 1
+		download "$1" "$TempFileAsc" 1> /dev/null 2>&1 || return 1
 			
 		# Importar Key
 		if gpg --import "$TempFileAsc" 1> /dev/null 2>&1; then
