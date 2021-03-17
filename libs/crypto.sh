@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 #
-version_crypto='2021-03-15'
+version_crypto='2021-03-16'
 # - REQUERIMET = print_text
 # - REQUERIMET = requests
 #
@@ -22,7 +22,7 @@ function show_import_erro()
 	elif [[ -x $(command -v wget) ]]; then
 		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
-	sleep 3
+	sleep 1
 }
 
 # print_text
@@ -46,13 +46,15 @@ function show_import_erro()
 
 gpg_verify()
 {
+	# $1 = arquivo.asc
+	# $2 = arquivo a ser verificado.
 	echo -ne "Verificando integridade do arquivo ... $(basename $2) "
 	gpg --verify "$1" "$2" 1> /dev/null 2>&1
 	if [[ $? == 0 ]]; then  
 		echo "OK"
 		return 0
 	else
-		sred "ERRO"
+		print_erro ""
 		sleep 1
 		return 1
 	fi
@@ -133,7 +135,7 @@ __shasum__()
 		syellow 'OK'
 		return 0
 	else
-		sred 'FALHA'
+		print_erro ""
 		red "(__shasum__): removendo arquivo inseguro ... $1"
 		rm -rf "$1"
 		return 1

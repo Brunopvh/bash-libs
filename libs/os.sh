@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_os='2021-03-05'
+version_os='2021-03-16'
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
 #
@@ -154,7 +154,7 @@ __sudo__()
 	fi
 }
 
-function unpack_archive()
+function unpack()
 {
 	# $1 = arquivo a ser descomprimido - (obrigatório)
 	# $2 = diretório de saida - (opcional)
@@ -222,6 +222,84 @@ function unpack_archive()
 
 	# echo -e "$(date +%H:%M:%S)"
 	loop_pid "$!" "Descompactando ... [$extension_file] ... $(basename $path_file)"
+	return 0
+}
+
+function unpack_archive()
+{
+	# $1 = arquivo a ser descomprimido - (obrigatório)
+	# $2 = diretório de saida - (opcional)
+
+	[[ ! -f "$1" ]] && {
+		red "(unpack_archive): nenhum arquivo informado no parâmetro 1."
+		return 1
+	}
+
+	if [[ "$2" ]]; then 
+		DirUnpack="$2"
+	elif [[ -z "$DirUnpack" ]]; then
+		DirUnpack=$(pwd)
+	fi
+
+	[[ ! -w "$DirUnpack" ]] && { 
+		red "Você não tem permissão de escrita [-w] em ... $DirUnpack"
+		return 1	
+	}
+
+	#printf "Entrando no diretório ... $DirUnpack\n"; cd "$DirUnpack"
+	
+	path_file="$1"
+	if [[ -x $(command -v file) ]]; then
+		# Detectar o tipo de arquivo com o comando file.
+		extension_file=$(get_type_file "$path_file")
+	else
+		# Detectar o tipo de arquivo apartir da extensão.
+		if [[ "${path_file: -6}" == 'tar.gz' ]]; then    # tar.gz - 6 ultimos caracteres.
+			extension_file='gzip'
+		elif [[ "${path_file: -7}" == 'tar.bz2' ]]; then # tar.bz2 - 7 ultimos carcteres.
+			extension_file='bzip2'
+		elif [[ "${path_file: -6}" == 'tar.xz' ]]; then  # tar.xz
+			extension_file='XZ'
+		elif [[ "${path_file: -4}" == '.zip' ]]; then    # .zip
+			extension_file='Zip'
+		elif [[ "${path_file: -4}" == '.deb' ]]; then    # .deb
+			extension_file='Debian'
+		else
+			printf "${CRed}(unpack_archive): Arquivo não suportado ... $path_file${CReset}\n"
+			return 1
+		fi
+	fi
+
+	# Calcular o tamanho do arquivo
+	# local len_file=$(du -hs $path_file | awk '{print $1}')
+	echo -ne "Descompactando ... $(basename $path_file) "
+
+	# Descomprimir de acordo com cada extensão de arquivo.	
+	if [[ "$extension_file" == 'gzip' ]]; then
+		tar -zxvf "$path_file" -C "$DirUnpack" 1> /dev/null 2>&1
+	elif [[ "$extension_file" == 'bzip2' ]]; then
+		tar -jxvf "$path_file" -C "$DirUnpack" 1> /dev/null 2>&1
+	elif [[ "$extension_file" == 'XZ' ]]; then
+		tar -Jxf "$path_file" -C "$DirUnpack" 1> /dev/null 2>&1
+	elif [[ "$extension_file" == 'Zip' ]]; then
+		unzip "$path_file" -d "$DirUnpack" 1> /dev/null 2>&1
+	elif [[ "$extension_file" == 'Debian' ]]; then
+		
+		if [[ -f /etc/debian_version ]]; then    # Descompressão em sistemas DEBIAN
+			ar -x "$path_file" 1> /dev/null 2>&1 
+		else                                     # Descompressão em outros sistemas.
+			ar -x "$path_file" --output="$DirUnpack" 1> /dev/null 2>&1
+		fi
+	fi
+
+	# echo -e "$(date +%H:%M:%S)"
+	if [[ $? == 0 ]]; then
+		echo "OK"
+	else
+		print_erro ""
+		return 1
+	fi
+
 	return 0
 }
 
