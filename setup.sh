@@ -79,7 +79,6 @@ function exists_file()
 		if [[ ! -f "$1" ]]; then
 			export STATUS_OUTPUT=1
 			echo -e "ERRO ... o arquivo não existe $1"
-			#sleep 0.05
 		fi
 		shift
 	done
@@ -166,6 +165,8 @@ function download()
 
 function install_shell_package_manager()
 {
+	# Para que esta função seja executada com sucesso é nescessário que $PWD ou ./ seja
+	# o diretório raiz do projeto.
 	echo -ne "Instalando libs ... "
 	cp -r -u ./libs/os.sh "$DIR_OPTIONAL"/libs/os.sh 1> /dev/null
 	cp -r -u ./libs/utils.sh "$DIR_OPTIONAL"/libs/utils.sh 1> /dev/null
@@ -227,8 +228,7 @@ fi
 
 
 if [[ -x "$DIR_BIN/shm" ]]; then
-	echo -e "Configurando"
-	"$DIR_BIN/shm" --configure
+	"$DIR_BIN/shm" --configure # Executar configuração para primeiro uso.
 	printf "Feito!\n"
 else
 	printf "Falha\n"

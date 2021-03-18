@@ -38,7 +38,7 @@ function show_import_erro()
 # Setar Diretório cache e arquivos de configuração.
 if [[ $(id -u) == 0 ]]; then
 	DIR_CACHE_SHM="/var/cache/$__appname__"
-	DIR_CONFIG_SHM="/etc/$__appname__"
+	DIR_CONFIG_SHM="/etc/${__appname__}.conf"
 	PATH_BASH_LIBS='/usr/local/lib/bash'
 	if [[ -f /etc/bashrc ]]; then
 		readonly __bashrc_file__='/etc/bashrc'
@@ -53,7 +53,7 @@ else
 fi
 
 # Setar o diretório das libs no sistema. apartir do arquivo de configuração.
-source "$__bashrc_file__" 1> /dev/null 2>&1
+# source "$__bashrc_file__" 1> /dev/null 2>&1
 source ~/.shmrc 1> /dev/null 2>&1
 
 FILE_MODULES_LIST="$DIR_CONFIG_SHM/modules.list"
@@ -81,8 +81,9 @@ readonly RequerimentsList=(
 	config_path.sh
 	)
 
-function check_local_modules()
+function check_local_modules() # -> int
 {
+	# Verificar se todos os módulos estão instalados no sistema.
 	for MOD in "${RequerimentsList[@]}"; do
 		if [[ ! -f "$__dir_bash_libs__/$MOD" ]]; then
 			show_import_erro "Módulo não encontrado $__dir_bash_libs__/$MOD"
@@ -192,10 +193,11 @@ function exists_file()
 
 function install_file_modules_list()
 {
+	# Baixa e salva o arquivo que contém a lista de todos os módulos disponíveis para instalação.
 	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
 	download "$URL_MODULES_LIST" "$TEMPORARY_FILE" 1> /dev/null 2>&1 &
 	loop_pid "$!" "Baixando $URL_MODULES_LIST"
-	export Upgrade='True'
+	export Upgrade='True' # Sobreescrever versões anteriores quando a variável Upgrade for igual a True.
 	__copy_files "$TEMPORARY_FILE" "$FILE_MODULES_LIST" 
 }
 
@@ -220,6 +222,7 @@ function __copy_files()
 
 function install_modules()
 {
+	# Instala os módulos recebidos como parâmetro desta função.
 	print_line
 	echo -e "${CGreen}I${CReset}nstalando os seguintes módulos/libs:\n"
 	n=0
@@ -255,12 +258,12 @@ function install_modules()
 					echo -e "export readonly $module=$PATH_BASH_LIBS/${module}.sh" >> ~/.shmrc
 				}
 		else
-			print_erro "Módulo indisponível para instalação $string"
+			print_erro "Módulo indisponível para instalação $module"
 			sleep 0.5
 		fi
 		shift
 	done
-	echo 'Feito!'
+	print_line
 }
 
 function __configure__()
@@ -286,17 +289,13 @@ function __configure__()
 		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> "$__bashrc_file__"
 	}
 
-	# ~/.shmrc
-	grep -q ^"source $__bashrc_file__" ~/.shmrc || {
-		echo -e "source $__bashrc_file__" >> ~/.shmrc
-	}
-
 	#sed -i '/PATH_BASH_LIBS/d' $FILE_CONFIG
 	sed -i "/export readonly PATH_BASH_LIBS/d" "$__bashrc_file__"
 }
 
 function show_info_modules()
 {
+	# Mostra informações de um ou mais módulos recebidos como argumento.
 	[[ -z $1 ]] && print_erro 'Falta um ou mais argumentos.' && exit 1
 	print_line '*'
 	for MOD in "${@}"; do
@@ -359,7 +358,7 @@ function main_shm()
 			-r|--remove) shift; remove_modules "$@";;
 			-l|--list) shift; list_modules "$@";;
 
-			--info) shift; show_info_modules "$@";;
+			--info) shift; show_info_modules "$@"; return 0; break;;
 			
 			
 			up|update) install_file_modules_list;;
