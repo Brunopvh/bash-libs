@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-version_os='2021-03-16'
+version_os='2021-03-17'
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
 #
 
 function show_import_erro()
 {
-	echo "ERRO: $@"
+	echo "ERRO ... $@"
 	if [[ -x $(command -v curl) ]]; then
 		echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	elif [[ -x $(command -v wget) ]]; then
 		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
-	sleep 3
+	sleep 1
 }
 
 # print_text
@@ -301,6 +301,31 @@ function unpack_archive()
 	fi
 
 	return 0
+}
+
+
+function exists_file()
+{
+	# Verificar a existencia de arquivos
+	# $1 = Arquivo a verificar.
+	# Também suporta uma mais de um arquivo a ser testado.
+	# exists_file arquivo1 arquivo2 arquivo3 ...
+	# se um arquivo informado como parâmetro não existir, esta função irá retornar 1.
+
+	[[ -z $1 ]] && return 1
+	export STATUS_OUTPUT=0
+
+	while [[ $1 ]]; do
+		if [[ ! -f "$1" ]]; then
+			export STATUS_OUTPUT=1
+			echo -e "ERRO ... o arquivo não existe $1"
+			#sleep 0.05
+		fi
+		shift
+	done
+
+	[[ "$STATUS_OUTPUT" == 0 ]] && return 0
+	return 1
 }
 
 

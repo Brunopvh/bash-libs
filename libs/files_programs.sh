@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-03-16'
+version_files_programs='2021-03-17'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -140,6 +140,12 @@ destinationFilesLibreofficeAppimage=(
 #=============================================================#
 # Navegadores
 #=============================================================#
+declare -A destinationFilesTorbrowser
+destinationFilesTorbrowser=(
+	[dir]="$DIR_OPTIONAL/torbrowser-x86_64"
+	[script]="$DIR_BIN/torbrowser"
+	[file_desktop]="$DIR_APPLICATIONS/start-tor-browser.desktop"
+)
 
 #=============================================================#
 # Internet

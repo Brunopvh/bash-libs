@@ -1,5 +1,30 @@
 #!/usr/bin/env bash
 #
+#---------------------------------------------------------#
+# INFO
+#  Este programa gerencia módulos para o bash instala/remove/atualiza ...
+# os módulos são instalados em ~/.local/lib/bash para o usuário e
+# /usr/local/lib/bash para o root.
+#
+#---------------------------------------------------------#
+# INSTALAÇÃO
+# A instalação correta deste programa deve ser feita por meio do
+# script setup.sh
+#  Instalação via curl: bash -c "$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
+#
+#  Instalação via wget: bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)"
+#
+#  Instalação via git:  git clone https://github.com/Brunopvh/bash-libs.git 
+#                       cd bash-libs
+#                       chmod +x setup.sh 
+#                       ./setup.sh install
+#
+# Após a instalação sera criado um link em ~/.local/bin/shm OU /usr/local/bin/shm
+# se você fez a instalação para o usuário talvez seja necessário reiniciar a sessão no seu 
+# sistema ou use source ~/.bashrc para ter e executavel disponível.
+# 
+# OBS: para verificar se ~/.local/bin faz parte do seu PATH na sessão atual execute echo $PATH.
+#---------------------------------------------------------#
 #
 
 readonly __version__='2021-03-14'
