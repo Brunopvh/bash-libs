@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_files_programs='2021-03-17'
+version_files_programs='2021-03-20'
 #
 # Este módulo/lib guarda o caminho de arquivos e diretórios de instalação de alguns pacotes.
 # Exemplos:
@@ -74,11 +74,11 @@ destinationFilesBrModelo=(
 	)
 
 declare -A destinationFilesIintellij
-destinationFilesIdeaic=(
-	[file_desktop]="$DIR_APPLICATIONS/jetbrains-idea.desktop"
+destinationFilesIintellij=(
+	[file_desktop]="$DIR_APPLICATIONS/jetbrains-intellij.desktop"
 	[png]="$DIR_ICONS/idea.png"
 	[script]="$DIR_BIN/idea"
-	[dir]="$DIR_OPTIONAL/idea-IC"
+	[dir]="$DIR_OPTIONAL/intellij-ide"
 	)
 
 declare -A destinationFilesNetbeans
