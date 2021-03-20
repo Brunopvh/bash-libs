@@ -230,14 +230,14 @@ function __copy_files()
 {
 	if [[ "$Upgrade" == 'True' ]]; then
 		echo -ne "Atualizando ... $2 "
-		cp -r -u "$1" "$2" 1> /dev/null 2>&1
+		cp -R "$1" "$2" 1> /dev/null 2>&1
 	else
 		echo -ne "Instalando ... $2 "
 		if [[ -f "$2" ]]; then
 			echo "... módulo já instalado [PULANDO]"
 			return 0
 		else
-			cp "$1" "$2" 1> /dev/null 2>&1
+			cp -R "$1" "$2" 1> /dev/null 2>&1
 		fi 
 	fi
 
