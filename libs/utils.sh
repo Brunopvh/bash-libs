@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_utils='2021-02-21'
+version_utils='2021-03-20'
 #
 # - REQUERIMENT = print_text
 #
@@ -13,16 +13,16 @@ function show_import_erro()
 	elif [[ -x $(command -v wget) ]]; then
 		echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
 	fi
-	sleep 3
+	sleep 1
 }
 
 # print_text
-[[ $imported_print_text != 'True' ]] && {
+if [[ $imported_print_text != 'True' ]]; then
 	if ! source "$PATH_BASH_LIBS"/print_text.sh 2> /dev/null; then
 		show_import_erro "módulo print_text.sh não encontrado em ... $PATH_BASH_LIBS"
 		exit 1
 	fi
-}
+fi
 
 export readonly imported_utils='True'
 
@@ -54,7 +54,7 @@ question()
 
 loop_pid()
 {
-	# Esta função serve para executar um loop enquanto um determinado processo
+	# Função para executar um loop enquanto determinado processo
 	# do sistema está em execução, por exemplo um outro processo de instalação
 	# de pacotes, como o "apt install" ou "pacman install" por exemplo, o pid
 	# deve ser passado como argumento $1 da função. Enquanto esse processo existir
@@ -84,12 +84,7 @@ loop_pid()
 
 wait_pid()
 {
-	# Esta função serve para executar um loop enquanto um determinado processo
-	# do sistema está em execução, por exemplo um outro processo de instalação
-	# de pacotes, como o "apt install" ou "pacman install" por exemplo, o pid
-	# deve ser passado como argumento $1 da função. Enquanto esse processo existir
-	# o loop ira bloquar a execução deste script, que será retomada assim que o
-	# processo informado for encerrado.
+	# Função semelhante a "loop_pid" porém esta não permite exibir uma mensagem personalizada.
 	local array_chars=('\' '|' '/' '-')
 	local num_char='0'
 	local Pid="$1"
