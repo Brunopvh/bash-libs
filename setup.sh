@@ -10,7 +10,7 @@
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-03-13'
+version='2021-03-20'
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
@@ -168,17 +168,18 @@ function install_shell_package_manager()
 	# Para que esta função seja executada com sucesso é nescessário que $PWD ou ./ seja
 	# o diretório raiz do projeto.
 	echo -ne "Instalando libs ... "
-	cp -r -u ./libs/os.sh "$DIR_OPTIONAL"/libs/os.sh 1> /dev/null
-	cp -r -u ./libs/utils.sh "$DIR_OPTIONAL"/libs/utils.sh 1> /dev/null
-	cp -r -u ./libs/requests.sh "$DIR_OPTIONAL"/libs/requests.sh 1> /dev/null
-	cp -r -u ./libs/print_text.sh "$DIR_OPTIONAL"/libs/print_text.sh 1> /dev/null
-	cp -r -u ./libs/config_path.sh "$DIR_OPTIONAL"/libs/config_path.sh 1> /dev/null
-	cp -r -u ./setup.sh "$DIR_OPTIONAL"/setup.sh 1> /dev/null
+	cp -R ./libs/os.sh "$DIR_OPTIONAL"/libs/os.sh 1> /dev/null
+	cp -R ./libs/utils.sh "$DIR_OPTIONAL"/libs/utils.sh 1> /dev/null
+	cp -R ./libs/requests.sh "$DIR_OPTIONAL"/libs/requests.sh 1> /dev/null
+	cp -R ./libs/print_text.sh "$DIR_OPTIONAL"/libs/print_text.sh 1> /dev/null
+	cp -R ./libs/config_path.sh "$DIR_OPTIONAL"/libs/config_path.sh 1> /dev/null
+	cp -R ./setup.sh "$DIR_OPTIONAL"/setup.sh 1> /dev/null
+	cp -R ./libs/modules.list "$DIR_OPTIONAL"/libs/modules.list 1> /dev/null
 	[[ $? == 0 ]] || return 1
 	echo 'OK'
 
-	echo -ne "Instalando shm ... em $DIR_OPTIONAL "
-	cp -r -u shm.sh "$DIR_OPTIONAL"/shm.sh
+	echo -ne "Instalando shm ... "
+	cp -R shm.sh "$DIR_OPTIONAL"/shm.sh
 	chmod a+x "$DIR_OPTIONAL"/shm.sh
 	ln -sf "$DIR_OPTIONAL"/shm.sh "$DIR_BIN"/shm
 	[[ $? == 0 ]] || return 1
@@ -206,17 +207,19 @@ function offline_setup()
 {
 	cd $dir_of_project
 	[[ ! -d ./libs ]] && {
-		echo "ERRO offline_setup: diretório libs não encontrado."
+		echo "ERRO offline_setup: diretório libs não encontrado em $(pwd)."
+		sleep 1
 		return 1
 	}
 
 	[[ ! -f ./shm.sh ]] && {
-		echo "ERRO offline_setup: arquivo shm.sh não encontrado."
+		echo "ERRO offline_setup: arquivo shm.sh não encontrado em $(pwd)."
 		return 1
 	}
 
 	# Verificar a existência dos módulos/dependências locais.
 	exists_file ./libs/os.sh ./libs/requests.sh ./libs/utils.sh ./libs/print_text.sh ./libs/config_path.sh || return 1
+	exists_file ./libs/modules.list || return 1
 	install_shell_package_manager
 }
 

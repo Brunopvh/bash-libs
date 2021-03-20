@@ -73,8 +73,8 @@ destinationFilesBrModelo=(
 	[file_jar]="$DIR_OPTIONAL/brmodelo.jar"
 	)
 
-declare -A destinationFilesIintellij
-destinationFilesIintellij=(
+declare -A destinationFilesIntellij
+destinationFilesIntellij=(
 	[file_desktop]="$DIR_APPLICATIONS/jetbrains-intellij.desktop"
 	[png]="$DIR_ICONS/idea.png"
 	[script]="$DIR_BIN/idea"

@@ -27,7 +27,7 @@
 #---------------------------------------------------------#
 #
 
-readonly __version__='2021-03-14'
+readonly __version__='2021-03-20'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -242,7 +242,9 @@ function __copy_files()
 	fi
 
 	[[ $? == 0 ]] && echo 'OK' && return 0
-	echo 'ERRO' && return 1
+	echo 'ERRO'
+	sleep 1
+	return 1
 }
 
 function install_modules()
@@ -293,7 +295,10 @@ function install_modules()
 
 function __configure__()
 {
-	install_file_modules_list || return 1
+	if [[ ! -f "$FILE_MODULES_LIST" ]]; then
+		install_file_modules_list || return 1
+	fi
+	
 	config_bashrc
 	config_zshrc	
 	touch ~/.shmrc
