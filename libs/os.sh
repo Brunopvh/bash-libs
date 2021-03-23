@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_os='2021-03-17'
+version_os='2021-03-23'
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
 #
@@ -81,7 +81,7 @@ is_admin(){
 is_executable()
 {
 	# Função para verificar se um executável existe no PATH do sistema.
-	if [[ -x $(which "$1" 2> /dev/null) ]]; then
+	if [[ -x $(command -v "$1" 2> /dev/null) ]]; then
 		return 0
 	else
 		return 1
