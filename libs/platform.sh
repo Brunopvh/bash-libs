@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 
-export version_platform='20201-03-01'
+export version_platform='2021-03-23'
 export KERNEL_TYPE=$(uname -s)
 export OS_ARCH='None'
 export OS_ID='None'
@@ -54,6 +54,8 @@ if [[ -f /etc/debian_version ]] && [[ -x $(command -v apt) ]]; then
 	BASE_DISTRO='debian'
 elif [[ -f /etc/fedora-release ]] && [[ -x $(command -v dnf) ]]; then
 	BASE_DISTRO='fedora'
+elif [[ -f /etc/arch-release ]] && [[ -x $(command -v pacman) ]]; then
+	BASE_DISTRO='archlinux'
 else
 	BASE_DISTRO='None'
 fi
