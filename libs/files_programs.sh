@@ -39,6 +39,21 @@ export imported_files_programs='True'
 #=============================================================#
 # Acessorios
 #=============================================================#
+
+declare -A destinationFilesCoinQtGui
+destinationFilesCoinQtGui=(
+	[file_desktop]="$DIR_APPLICATIONS/coin-qt-gui.desktop"
+	[script]="$DIR_BIN/coin-qt-gui"
+	[png]="$DIR_ICONS/coin-qt-gui.png"
+	)
+
+declare -A destinationFilesElectrum
+destinationFilesElectrum=(
+	[file_desktop]="$DIR_APPLICATIONS/electrum.desktop"
+	[script]="$DIR_BIN/electrum"
+	[png]="$DIR_ICONS/electrum.png"
+	)
+
 # Etcher
 declare -A destinationFilesEtcher
 destinationFilesEtcher=(
