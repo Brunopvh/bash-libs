@@ -27,7 +27,7 @@
 #---------------------------------------------------------#
 #
 
-readonly __version__='2021-03-20'
+readonly __version__='2021-04-29'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -141,7 +141,6 @@ readonly URL_SHM="$URL_RAW_REPO_DEVELOPMENT/shm.sh"
 
 USER_SHELL=$(basename $SHELL)
 
-# Usar zshrc ou bashrc?
 if [[ $USER_SHELL == 'zsh' ]]; then
 	if [[ -f ~/.zshrc ]]; then
 		__shell_config_file__=~/.zshrc
@@ -324,20 +323,12 @@ function __configure__()
 	config_bashrc
 	config_zshrc	
 	
-	__backup_shell="${__shell_config_file__}.bak"
-
-	if [[ ! -f "$__backup_shell" ]]; then
-		echo -e "Criando backup ... $__backup_shell"
-		cp "$__shell_config_file__" "$__backup_shell"
-	fi
-	sleep 0.5
-
-	# bashrc
-	grep -q ^"export PATH_BASH_LIBS=$PATH_BASH_LIBS" "$__shell_config_file__" || {
-		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> "$__shell_config_file__"
+	grep -q ^"export PATH_BASH_LIBS=$PATH_BASH_LIBS" ~/.shmrc || {
+		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
 	}
 
-	sed -i "/export readonly PATH_BASH_LIBS/d" "$__shell_config_file__"
+	grep -q "^source .*shmrc" "$__shell_config_file__" && return 0
+	echo "source ~/.shmrc 1>/dev/null 2>&1" >> "$__shell_config_file__"
 }
 
 function show_info_modules()

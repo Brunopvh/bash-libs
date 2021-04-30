@@ -10,7 +10,7 @@
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-03-20'
+version='2021-04-29'
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
@@ -34,6 +34,28 @@ readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
 readonly URL_TARFILE_LIBS="$URL_ARCHIVE/main.tar.gz"
 
 readonly FILE_TAR_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
+
+USER_SHELL=$(basename $SHELL)
+
+if [[ $USER_SHELL == 'zsh' ]]; then
+	if [[ -f ~/.zshrc ]]; then
+		__shell_config_file__=~/.zshrc
+	elif [[ -f /etc/zsh/zshrc ]]; then
+		__shell_config_file__=/etc/zsh/zshrc
+	else
+		echo "ERRO ... arquivo de configuração zshrc não encontrado"
+		sleep 1
+	fi
+elif [[ $USER_SHELL == 'bash' ]]; then
+	if [[ -f ~/.bashrc ]]; then
+		__shell_config_file__=~/.bashrc
+	elif [[ -f /etc/bash.bashrc ]]; then
+		__shell_config_file__=/etc/bash.bashrc
+	else
+		echo "ERRO ... arquivo de configuração bashrc não encontrado"
+		sleep 1
+	fi
+fi
 
 if [[ -d "$DIR_OPTIONAL" && "$AssumeYes" != 'True' ]]; then
 	echo
@@ -229,14 +251,14 @@ else
 	online_setup || exit 1
 fi
 
+grep -q ^"export PATH_BASH_LIBS=$PATH_BASH_LIBS" ~/.shmrc || {
+		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
+}
 
-if [[ -x "$DIR_BIN/shm" ]]; then
-	"$DIR_BIN/shm" --configure # Executar configuração para primeiro uso.
-	printf "Feito!\n"
-else
-	printf "Falha\n"
-	exit 1
-fi
+grep -q "^source .*shmrc" "$__shell_config_file__" || {
+	echo "source ~/.shmrc 1>/dev/null 2>&1" >> "$__shell_config_file__"
+}
+[[ -x "$DIR_BIN"/shm ]] && "$DIR_BIN"/shm --configure
 
 rm -rf "$TEMPORARY_DIR" 2> /dev/null
 rm -rf "$TEMPORARY_FILE" 2> /dev/null
