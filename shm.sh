@@ -327,8 +327,9 @@ function __configure__()
 		echo -e "export PATH_BASH_LIBS=$PATH_BASH_LIBS" >> ~/.shmrc
 	}
 
-	grep -q "^source .*shmrc" "$__shell_config_file__" && return 0
-	echo "source ~/.shmrc 1>/dev/null 2>&1" >> "$__shell_config_file__"
+	grep -q "^source .*shmrc" "$__shell_config_file__" || {
+		echo "source ~/.shmrc 1>/dev/null 2>&1" >> "$__shell_config_file__"
+	}
 }
 
 function show_info_modules()
