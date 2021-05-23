@@ -30,7 +30,7 @@ Observação: Você também pode instalar o script na sua HOME usando o mesmo co
    $ ~/.local/bin/shm --configure -> Em seguida reinicie o shell/terminal ou encerre a sessão e faça login novamente
    para que o arquivo ~/.bashrc seja carregado.
    
-   Verifique novamente a saída do comando abaixo:
+   Verifique novamente a saída do comando:
    $ command -v shm
   
    
