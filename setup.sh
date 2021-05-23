@@ -28,7 +28,7 @@ readonly TEMPORARY_FILE=$(mktemp -u)
 readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
 readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
-readonly URL_TARFILE_LIBS="$URL_ARCHIVE/refs/tags/0.1.0.tar.gz"
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/refs/heads/release-0.1.0.tar.gz"
 readonly FILE_TAR_LIBS="$DIR_DOWNLOAD/libs.tar.gz"
 
 USER_SHELL=$(basename $SHELL)
