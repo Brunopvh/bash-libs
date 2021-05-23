@@ -131,13 +131,11 @@ readonly TEMPORARY_FILE=$(mktemp -u)
 readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
 readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 
-readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
-readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
+readonly URL_RAW_REPO_V1='https://raw.github.com/Brunopvh/bash-libs/release-0.1.0'
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
-
-readonly URL_TARFILE_LIBS="$URL_ARCHIVE/main.tar.gz"
-readonly URL_MODULES_LIST="$URL_RAW_REPO_MAIN/libs/modules.list"
-readonly URL_SHM="$URL_RAW_REPO_DEVELOPMENT/shm.sh"
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/refs/tags/0.1.0.tar.gz"
+readonly URL_MODULES_LIST="$URL_RAW_REPO_V1/libs/modules.list"
+readonly URL_SHM="$URL_RAW_REPO_V1/shm.sh"
 
 USER_SHELL=$(basename $SHELL)
 
