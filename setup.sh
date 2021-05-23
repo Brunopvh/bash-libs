@@ -10,7 +10,7 @@
 #                    sudo bash -c "$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)" 
 #
 
-version='2021-04-29'
+version='2021-05-22'
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
@@ -57,6 +57,7 @@ elif [[ $USER_SHELL == 'bash' ]]; then
 	fi
 fi
 
+# Questionar o usuário se deseja sobrescrever versões instaladas anteriormente.
 if [[ -d "$DIR_OPTIONAL" && "$AssumeYes" != 'True' ]]; then
 	echo
 	echo -e "Existe uma versão do gerenciador de pacotes shm instalada em seu sistema"
@@ -147,7 +148,7 @@ function download()
 	local path_file="$2"
 
 	if [[ -z "$clientDownloader" ]]; then
-		echo -e "ERRO ... " "(download) Instale curl|wget|aria2c para prosseguir."
+		echo -e "ERRO ... (download) Instale curl|wget|aria2c para prosseguir."
 		sleep 0.1
 		return 1
 	fi
@@ -180,15 +181,15 @@ function download()
 		esac
 	fi
 
-	[[ $? == 0 ]] && echo 'OK' && return 0
-	echo -e "ERRO ... " '(download)'
+	[[ $? == 0 ]] && return 0
+	echo -e "ERRO ... (download)"
 	return 1
 }
 
 function install_shell_package_manager()
 {
-	# Para que esta função seja executada com sucesso é nescessário que $PWD ou ./ seja
-	# o diretório raiz do projeto.
+	# Para que esta função seja executada com sucesso é nescessário que este arquivo
+	# seja executado apartir da raiz do projeto.
 	echo -ne "Instalando libs ... "
 	cp -R ./libs/os.sh "$DIR_OPTIONAL"/libs/os.sh 1> /dev/null
 	cp -R ./libs/utils.sh "$DIR_OPTIONAL"/libs/utils.sh 1> /dev/null
@@ -197,7 +198,10 @@ function install_shell_package_manager()
 	cp -R ./libs/config_path.sh "$DIR_OPTIONAL"/libs/config_path.sh 1> /dev/null
 	cp -R ./setup.sh "$DIR_OPTIONAL"/setup.sh 1> /dev/null
 	cp -R ./libs/modules.list "$DIR_OPTIONAL"/libs/modules.list 1> /dev/null
-	[[ $? == 0 ]] || return 1
+	if [[ $? != 0 ]]; then
+		echo "ERRO ... (install_shell_package_manager)"
+		return 1
+	fi
 	echo 'OK'
 
 	echo -ne "Instalando shm ... "
@@ -210,7 +214,7 @@ function install_shell_package_manager()
 
 function online_setup()
 {
-	# Baixar os arquivos do repositório main.
+	# Baixar os arquivos do repositório main e instalar no sistema.
 	echo -ne "Baixando arquivos aguarde "
 	download "$URL_TARFILE_LIBS" "$FILE_TAR_LIBS" 1> /dev/null 2>&1 || return 1
 	echo 'OK'
