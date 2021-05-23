@@ -11,6 +11,7 @@
 #
 
 version='0.1.1'
+appname='setup.sh'
 author='Bruno Chaves' # https://github.com/Brunopvh
 
 readonly __script__=$(readlink -f "$0")
@@ -20,13 +21,13 @@ DELEY=0.1
 
 # Definir o destino dos módulos e do script shm.
 if [[ $(id -u) == 0 ]]; then
-	PREFIX_INSTALATION='/opt'
-	PREFIX_BIN='/usr/local'
-	PREFIX_LIBS='/usr/local/lib'
+	INSTALATION_DIR='/opt'
+	DIR_BIN='/usr/local'
+	PATH_BASH_LIBS='/usr/local/lib'
 else
-	PREFIX_INSTALATION=~/.local/share
-	PREFIX_BIN=~/.local
-	PREFIX_LIBS=~/.local/lib
+	INSTALATION_DIR=~/.local/share
+	DIR_BIN=~/.local
+	PATH_BASH_LIBS=~/.local/lib
 fi
 
 # Concatenar os diretórios
@@ -57,6 +58,22 @@ elif [[ $USER_SHELL == 'bash' ]]; then
 	fi
 fi
 
+function usage()
+{
+cat <<EOF
+   Use: install|uninstall|--version|--help
+        
+
+   $(basename $appname)     Instala o shm apartir dos arquivos no github (online installer)   
+
+   install         Instalar o shm apartir do diretório do projeto
+   uninstall       Desinstala o shm
+   -v|--version    Mostra versão
+   -h|--help       Mostra ajuda
+
+EOF
+}
+
 function msg_erro()
 {
 	echo -e "ERRO ... $@"
@@ -66,7 +83,7 @@ function msg_erro()
 function is_shm() 
 {
 	# Verificar se existe outra versão do shm instalada no sistema.
-	if [[ -d "$INSTALATION_DIR" && -x "${INSTALATION_DIR}/shm" ]]; then
+	if [[ -f "${INSTALATION_DIR}/shm.sh" && -x "${DIR_BIN}/shm" ]]; then
 		return 0
 	else
 		return 1
@@ -208,7 +225,7 @@ function silent_download()
 
 	check_internet || return 1
 	
-	echo -e "Conectando ... $url "
+	echo -ne "Conectando ... $url "
 	if [[ ! -z $path_file ]]; then
 		case "$clientDownloader" in 
 			aria2c) 
@@ -257,7 +274,7 @@ function install_shell_package_manager()
 	fi
 	echo 'OK'
 
-	echo -ne "Instalando shm ... "
+	echo -ne "Instalando shm em ... $INSTALATION_DIR"
 	cp -R shm.sh "$INSTALATION_DIR"/shm.sh
 	chmod a+x "$INSTALATION_DIR"/shm.sh
 	ln -sf "$INSTALATION_DIR"/shm.sh "$DIR_BIN"/shm
@@ -280,6 +297,7 @@ function configure_shell()
 function online_setup()
 {
 	# Baixar os arquivos do repositório main.
+	create_dirs
 	silent_download "$URL_PACKAGES_LIBS" "$TEMP_FILE_TAR" || return 1
 	
 	cd $DIR_DOWNLOAD
@@ -295,6 +313,7 @@ function online_setup()
 
 function offline_setup()
 {
+	create_dirs
 	cd $dir_of_project
 	[[ ! -d ./libs ]] && {
 		msg_erro "(offline_setup): diretório libs não encontrado em $(pwd)."
@@ -310,12 +329,34 @@ function offline_setup()
 	exists_file ./libs/os.sh ./libs/requests.sh ./libs/utils.sh ./libs/print_text.sh ./libs/config_path.sh || return 1
 	exists_file ./libs/modules.list || return 1
 	install_shell_package_manager
+	"$DIR_BIN"/shm --configure
 }
 
-if [[ "$1" == 'install' ]]; then
-	offline_setup || exit 1
-else
-	online_setup || exit 1
-fi
+function main_setup()
+{
+
+	if [[ -z $1 ]]; then
+		online_setup
+		return 0
+	fi
+
+	while [[ $1 ]]; do
+		case "$1" in
+			install) offline_setup; return 0; break;;
+			uninstall) uninstall_shm; return 0; break;;
+			-v|--version) echo -e "$version";;
+			-h|--help) usage; return 0; break;;
+			--module) ;;
+			*) msg_erro "parâmetro inválido detectado"; return 1; break;;
+		esac
+		shift
+	done
+}
+
+
+main_setup "$@"
+clean_dirs 1> /dev/null 2>&1
+
+
 
 
