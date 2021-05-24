@@ -27,7 +27,7 @@
 #---------------------------------------------------------#
 #
 
-readonly __version__='2021-04-29'
+readonly __version__='0.1.1'
 readonly __appname__='shm'
 readonly __script__=$(readlink -f "$0")
 readonly dir_of_project=$(dirname "$__script__")
@@ -46,17 +46,7 @@ fi
 function show_import_erro()
 {
 	echo "ERRO shm: $@"
-	case "$clientDownloader" in
-		curl) 
-			echo -e "Execute ... bash -c \"\$(curl -fsSL https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-			;;
-		wget)
-			echo -e "Execute ... bash -c \"\$(wget -q -O- https://raw.github.com/Brunopvh/bash-libs/main/setup.sh)\""
-			;;
-		aria2c)
-			echo -e "Execute ... aria2c https://raw.github.com/Brunopvh/bash-libs/main/setup.sh -o setup.sh; bash setup.sh; rm setup.sh"
-			;;
-	esac
+	echo -e "Visite https://github.com/Brunopvh/bash-libs"
 	sleep 1
 }
 
@@ -65,36 +55,34 @@ if [[ $(id -u) == 0 ]]; then
 	DIR_CACHE_SHM="/var/cache/$__appname__"
 	DIR_CONFIG_SHM="/etc/${__appname__}.conf"
 	PATH_BASH_LIBS='/usr/local/lib/bash'
-	if [[ -f /etc/bashrc ]]; then
-		readonly __bashrc_file__='/etc/bashrc'
-	else
-		readonly __bashrc_file__='/etc/bash.bashrc'
-	fi
 else
 	DIR_CACHE_SHM=~/.cache/"$__appname__"
 	DIR_CONFIG_SHM=~/.config/"$__appname__"
 	PATH_BASH_LIBS=~/.local/lib/bash
-	readonly __bashrc_file__=~/.bashrc
 fi
 
-# Setar o diretório das libs no sistema. apartir do arquivo de configuração.
-source ~/.shmrc 1> /dev/null 2>&1
-
-FILE_MODULES_LIST="$DIR_CONFIG_SHM/modules.list"
-FILE_DB_APPS="$DIR_CONFIG_SHM/installed-apps.list"
-
-# Setar diretório para importar os módulos.
-if [[ -d "$dir_of_project/libs" ]]; then
-	__dir_bash_libs__="$dir_of_project/libs" # Importar do diretório deste projeto.
-elif [[ -d "$PATH_BASH_LIBS" ]]; then
-	__dir_bash_libs__="$PATH_BASH_LIBS" # Importar do sistema
-fi
-
-[[ ! -d $__dir_bash_libs__ ]] && {
+[[ ! -d $PATH_BASH_LIBS ]] && {
 	show_import_erro "Diretório para importação de módulos não encontrado."
 	exit 1
 }
 
+USER_SHELL=$(basename $SHELL)
+if [[ $USER_SHELL == 'zsh' ]]; then
+	if [[ $(id -u) == 0 ]]; then
+		_shell_config_file='/etc/zsh/zshrc'
+	else
+		_shell_config_file=~/.zshrc
+	fi
+elif [[ $USER_SHELL == 'bash' ]]; then
+	if [[ $(id -u) == 0 ]]; then
+		_shell_config_file='/etc/bash.bashrc'
+	else
+		_shell_config_file=~/.bashrc
+	fi
+fi
+
+FILE_MODULES_LIST="$PATH_BASH_LIBS/modules.list"
+FILE_DB_APPS="$DIR_CONFIG_SHM/installed-apps.list"
 
 # Módulos em bash necessários para o funcionamento deste programa.
 readonly RequerimentsList=(
@@ -105,12 +93,12 @@ readonly RequerimentsList=(
 	config_path.sh
 	)
 
-function check_local_modules() # -> int
+function check_local_modules()
 {
 	# Verificar se todos os módulos estão instalados no sistema.
 	for MOD in "${RequerimentsList[@]}"; do
-		if [[ ! -f "$__dir_bash_libs__/$MOD" ]]; then
-			show_import_erro "Módulo não encontrado $__dir_bash_libs__/$MOD"
+		if [[ ! -f "$PATH_BASH_LIBS/$MOD" ]]; then
+			show_import_erro "Módulo não encontrado $PATH_BASH_LIBS/$MOD"
 			return 1
 			break
 		fi
@@ -119,25 +107,22 @@ function check_local_modules() # -> int
 }
 
 check_local_modules || exit 1
-source "$__dir_bash_libs__"/print_text.sh
-source "$__dir_bash_libs__"/utils.sh
-source "$__dir_bash_libs__"/os.sh
-source "$__dir_bash_libs__"/requests.sh
-source "$__dir_bash_libs__"/config_path.sh
-
+source "$PATH_BASH_LIBS"/print_text.sh
+source "$PATH_BASH_LIBS"/utils.sh
+source "$PATH_BASH_LIBS"/os.sh
+source "$PATH_BASH_LIBS"/requests.sh
+source "$PATH_BASH_LIBS"/config_path.sh
 
 readonly TEMPORARY_DIR=$(mktemp --directory -u)
 readonly TEMPORARY_FILE=$(mktemp -u)
 readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
 readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
 
-readonly URL_RAW_REPO_MAIN='https://raw.github.com/Brunopvh/bash-libs/main'
-readonly URL_RAW_REPO_DEVELOPMENT='https://raw.github.com/Brunopvh/bash-libs/development'
+readonly URL_RAW_REPO='https://raw.github.com/Brunopvh/bash-libs/v0.1.1'
 readonly URL_ARCHIVE='https://github.com/Brunopvh/bash-libs/archive'
-
-readonly URL_TARFILE_LIBS="$URL_ARCHIVE/main.tar.gz"
-readonly URL_MODULES_LIST="$URL_RAW_REPO_MAIN/libs/modules.list"
-readonly URL_SHM="$URL_RAW_REPO_DEVELOPMENT/shm.sh"
+readonly URL_TARFILE_LIBS="$URL_ARCHIVE/v0.1.1.tar.gz"
+readonly URL_MODULES_LIST="$URL_RAW_REPO/libs/modules.list"
+readonly URL_SHM="$URL_RAW_REPO/shm.sh"
 
 USER_SHELL=$(basename $SHELL)
 
@@ -237,7 +222,7 @@ function exists_file()
 	return 1
 }
 
-function install_file_modules_list()
+function get_modules_list()
 {
 	# Baixa e salva o arquivo que contém a lista de todos os módulos disponíveis para instalação.
 	[[ -f $TEMPORARY_FILE ]] && rm -rf $TEMPORARY_FILE 2> /dev/null
@@ -317,7 +302,7 @@ function install_modules()
 function __configure__()
 {
 	if [[ ! -f "$FILE_MODULES_LIST" ]]; then
-		install_file_modules_list || return 1
+		get_modules_list || return 1
 	fi
 	
 	config_bashrc
@@ -364,7 +349,8 @@ function list_modules()
 
 function self_update()
 {
-	cd "$dir_of_project"
+	#cd "$dir_of_project"
+	cd "$PATH_BASH_LIBS"
 	env AssumeYes='True' ./setup.sh
 }
 
@@ -382,7 +368,7 @@ function main_shm()
 		esac
 	done
 
-	[[ -f $FILE_MODULES_LIST ]] || install_file_modules_list
+	[[ -f $FILE_MODULES_LIST ]] || get_modules_list
 
 	while [[ $1 ]]; do
 		case "$1" in
@@ -400,7 +386,7 @@ function main_shm()
 			--info) shift; show_info_modules "$@"; return 0; break;;
 			
 			
-			up|update) install_file_modules_list;;
+			up|update) get_modules_list;;
 			*) print_erro "argumento invalido detectado."; return 1; break;;
 		esac
 		shift
