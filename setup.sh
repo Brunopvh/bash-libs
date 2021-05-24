@@ -39,8 +39,9 @@ readonly TEMPORARY_DIR=$(mktemp --directory -u) # -u Não cria o diretório.
 readonly TEMPORARY_FILE=$(mktemp -u) # -u Não cria o arquivo
 readonly DIR_UNPACK="$TEMPORARY_DIR/unpack"
 readonly DIR_DOWNLOAD="$TEMPORARY_DIR/download"
-readonly URL_RAW_REPO='https://raw.github.com/Brunopvh/bash-libs/main'
-readonly URL_PACKAGES_LIBS="https://github.com/Brunopvh/bash-libs/archive/main.tar.gz"
+readonly URL_RAW_REPO='https://raw.github.com/Brunopvh/bash-libs/v0.1.1'
+readonly URL_PACKAGES_LIBS='https://github.com/Brunopvh/bash-libs/archive/refs/heads/v0.1.1.tar.gz'
+#readonly URL_PACKAGES_LIBS="https://github.com/Brunopvh/bash-libs/archive/main.tar.gz"
 readonly TEMP_FILE_TAR="$DIR_DOWNLOAD/libs.tar.gz"
 
 USER_SHELL=$(basename $SHELL)
@@ -93,8 +94,11 @@ function is_shm()
 
 function question_install()
 {
+	# Não questionar nada pois AssumeYes e igual a True
+	[[ "$AssumeYes" == 'True' ]] && return 0
+
 	# Não  questiona nada pois não exite outras versões do shm instaladas (is_shm retornou 1).
-	#if ! is_shm; then return 0; fi 
+	if ! is_shm; then return 0; fi 
 
 	# Perguntar se o usuário deseja prossegui com a instalação
 	# pois já existe uma versão instalada no sistema (is_shm retornou status 0)
@@ -261,23 +265,22 @@ function install_shell_package_manager()
 	# Para que esta função seja executada com sucesso é nescessário que 
 	# este arquivo de instalação seja executado apartir da raiz do projeto.
 	echo -ne "Instalando libs ... "
-	cp -R ./libs/os.sh "$INSTALATION_DIR"/libs/os.sh 1> /dev/null
-	cp -R ./libs/utils.sh "$INSTALATION_DIR"/libs/utils.sh 1> /dev/null
-	cp -R ./libs/requests.sh "$INSTALATION_DIR"/libs/requests.sh 1> /dev/null
-	cp -R ./libs/print_text.sh "$INSTALATION_DIR"/libs/print_text.sh 1> /dev/null
-	cp -R ./libs/config_path.sh "$INSTALATION_DIR"/libs/config_path.sh 1> /dev/null
-	cp -R ./setup.sh "$INSTALATION_DIR"/setup.sh 1> /dev/null
-	cp -R ./libs/modules.list "$INSTALATION_DIR"/libs/modules.list 1> /dev/null
+	cp -R ./libs/os.sh "$PATH_BASH_LIBS"/os.sh 1> /dev/null
+	cp -R ./libs/utils.sh "$PATH_BASH_LIBS"/utils.sh 1> /dev/null
+	cp -R ./libs/requests.sh "$PATH_BASH_LIBS"/requests.sh 1> /dev/null
+	cp -R ./libs/print_text.sh "$PATH_BASH_LIBS"/print_text.sh 1> /dev/null
+	cp -R ./libs/config_path.sh "$PATH_BASH_LIBS"/config_path.sh 1> /dev/null
+	cp -R ./setup.sh "$PATH_BASH_LIBS"/setup.sh 1> /dev/null
+	cp -R ./libs/modules.list "$PATH_BASH_LIBS"/modules.list 1> /dev/null
 	if [[ $? != 0 ]]; then
 		msg_erro "(install_shell_package_manager)"
 		return 1
 	fi
 	echo 'OK'
 
-	echo -ne "Instalando shm em ... $INSTALATION_DIR"
-	cp -R shm.sh "$INSTALATION_DIR"/shm.sh
-	chmod a+x "$INSTALATION_DIR"/shm.sh
-	ln -sf "$INSTALATION_DIR"/shm.sh "$DIR_BIN"/shm
+	echo -ne "Instalando shm ... "
+	cp -R shm.sh "$DIR_BIN"/shm
+	chmod a+x "$DIR_BIN"/shm
 	[[ $? == 0 ]] || return 1
 	echo 'OK'
 	configure_shell
