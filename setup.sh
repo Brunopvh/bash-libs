@@ -84,7 +84,7 @@ function msg_erro()
 function is_shm() 
 {
 	# Verificar se existe outra versão do shm instalada no sistema.
-	if [[ -f "${INSTALATION_DIR}/shm.sh" && -x "${DIR_BIN}/shm" ]]; then
+	if [[ -x "${DIR_BIN}/shm" ]]; then
 		return 0
 	else
 		return 1
@@ -107,7 +107,7 @@ function question_install()
 	echo
 	case "${_YESNO,,}" in 
 		s) return 0;;
-		n) return 1;;
+		n) echo "Abortando"; return 1;;
 		*) msg_erro "digite 's' ou 'n'";;
 	esac
 	
@@ -327,6 +327,8 @@ function offline_setup()
 		msg_erro "(offline_setup): arquivo shm.sh não encontrado em $(pwd)."
 		return 1
 	}
+
+	question_install || return 1
 
 	# Verificar a existência dos módulos/dependências locais.
 	exists_file ./libs/os.sh ./libs/requests.sh ./libs/utils.sh ./libs/print_text.sh ./libs/config_path.sh || return 1
