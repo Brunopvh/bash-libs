@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_pkgmanager='2021-03-11'
+version_pkgmanager='2021-05-29'
 #
 # - REQUERIMENT = utils
 # - REQUERIMENT = print_text
@@ -211,21 +211,22 @@ _BROKE()
 		return 0
 	fi
 
+
+	COMMANDS=(
+		'sudo dpkg --configure -a'
+		'sudo apt clean'
+		'sudo apt remove'
+		'sudo apt install -y -f'
+		)
+	if [[ "$OS_ID" == 'debian' ]]; then
+		COMMANDS[4]='sudo apt --fix-broken install'
+	fi
 	
-	yellow "Executando: dpkg --configure -a"
-	_DPKG --configure -a
-
-	yellow "Executando: apt clean"
-	_APT clean
-
-	yellow "Executando: apt remove"
-	_APT remove
 	
-	yellow "Executando: apt install -y -f"
-	_APT install -y -f
-
-	yellow "Executando: apt --fix-broken install"
-	_APT --fix-broken install
+	for cmd in "${COMMANDS[@]}"; do
+		echo -e "Executando ... $cmd"
+		$cmd
+	done
 	
 	# sudo apt install --yes --force-yes -f 
 }

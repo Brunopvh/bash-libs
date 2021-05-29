@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-version_requests='2021-03-09'
+version_requests='2021-05-29'
 #
 # - REQUERIMENT = print_text
 # - REQUERIMENT = utils
@@ -58,10 +58,10 @@ function show_import_erro()
 export imported_requests='True'
 
 # Verificar gerenciador de downloads.
-if [[ -x $(command -v wget) ]]; then
-	export clientDownloader='wget'
-elif [[ -x $(command -v aria2c) ]]; then
+if [[ -x $(command -v aria2c) ]]; then
 	export clientDownloader='aria2c'
+elif [[ -x $(command -v wget) ]]; then
+	export clientDownloader='wget'
 elif [[ -x $(command -v curl) ]]; then
 	export clientDownloader='curl'
 else
